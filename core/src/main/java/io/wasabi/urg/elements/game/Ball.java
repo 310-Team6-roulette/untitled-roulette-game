@@ -60,6 +60,7 @@ public class Ball extends GameObject {
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
     private boolean freeSpin = false;
+    private float frictionMultiplier = 1f;
 
     private Tween dropTween;
     private float settleTimer = 0f;
@@ -219,7 +220,7 @@ public class Ball extends GameObject {
         float radialComp = vel.dot(radialDir);
         float tangentComp = vel.dot(tangentDir);
 
-        float tangentialDampingPerSecond = 0.6f;
+        float tangentialDampingPerSecond = 0.6f * frictionMultiplier;
         float dampingThisFrame = 1f - (float) Math.pow(1f - tangentialDampingPerSecond, FIXED_TIMESTEP);
         tangentComp *= (1f - dampingThisFrame);
 
@@ -238,7 +239,9 @@ public class Ball extends GameObject {
         setPositionFromPolar(currentAngleRad, currentRadius);
 
         float decelerationFactor = 0.5f;
-        tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
+        float adjustedDecelerationFactor = 1f - ((1f - decelerationFactor) * frictionMultiplier);
+
+        tangentialSpeed *= (float) Math.pow(adjustedDecelerationFactor, delta);
 
         // Speed to enter DROPPING state
         float dropSpeedThreshold = 400f;
@@ -268,7 +271,10 @@ public class Ball extends GameObject {
         setPositionFromPolar(currentAngleRad, currentRadius);
 
         float dropDecelerationFactor = 0.2f;
-        tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
+        float adjustedDropDecelerationFactor =
+            1f - ((1f - dropDecelerationFactor) * frictionMultiplier);
+
+        tangentialSpeed *= (float) Math.pow(adjustedDropDecelerationFactor, delta);
 
         if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
             Vector2 tangentDir = new Vector2(
@@ -296,7 +302,7 @@ public class Ball extends GameObject {
         float bowlPullMag = ball.getMass() * 700f;
         ball.applyForceToCenter(radialInward.scl(bowlPullMag), true);
 
-        float bounceDampingPerSecond = 0.25f;
+        float bounceDampingPerSecond = 0.25f * frictionMultiplier;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
@@ -308,12 +314,12 @@ public class Ball extends GameObject {
         float speed = ball.getLinearVelocity().len();
 
         // Speed to enter SETTLE state
-        float settleSpeedThreshold = 50f;
+        float settleSpeedThreshold = 50f / frictionMultiplier;
         if (speed <= settleSpeedThreshold) {
             lowSpeedTimer += FIXED_TIMESTEP;
 
             // must stay slow this long before settling
-            float lowSpeedTimeRequired = 0.5f;
+            float lowSpeedTimeRequired = 0.5f/frictionMultiplier;
             if (lowSpeedTimer >= lowSpeedTimeRequired) {
                 settleTimer = 0f;
                 state = State.SETTLING;
@@ -337,7 +343,7 @@ public class Ball extends GameObject {
             return;
         }
 
-        float bounceDampingPerSecond = 0.99f;
+        float bounceDampingPerSecond = 0.99f * frictionMultiplier;
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
 
         applyTangentialDamping();
@@ -348,7 +354,7 @@ public class Ball extends GameObject {
             vel.y * (1f - dampingThisFrame));
 
         settleTimer += Ball.FIXED_TIMESTEP;
-        float settleTimeRequired = 0.5f;
+        float settleTimeRequired = 0.5f / frictionMultiplier;
         if (settleTimer >= settleTimeRequired) {
             finalizeStop();
         }
@@ -403,7 +409,7 @@ public class Ball extends GameObject {
     }
     /**
      * Determines which tile the ball has landed on by
-     * checking for overlaps between the ball's circular area 
+     * checking for overlaps between the ball's circular area
      * and the polygons of each tile.
      */
     private Tile getLandedTile() {
@@ -447,6 +453,12 @@ public class Ball extends GameObject {
 
     public Body getBody() {
         return ball;
+    }
+
+    public float getFrictionMultiplier() { return frictionMultiplier; }
+
+    public void setFrictionMultiplier(float frictionMultiplier) {
+        this.frictionMultiplier = frictionMultiplier;
     }
 
     @Override
