@@ -8,7 +8,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -31,6 +30,7 @@ import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
@@ -137,7 +137,7 @@ public class GameScreen implements Screen {
      */
     private void launchSpin(boolean free) {
         float initialSpeed = random.nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
-        Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.BEFORE_SPIN);
         SoundManager.getInstance().playSound("spin1");
         ball.setVisible(true);
 
