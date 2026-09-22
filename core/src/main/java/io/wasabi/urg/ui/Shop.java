@@ -37,6 +37,12 @@ public class Shop extends InputAdapter {
     private static final int CHARM_OFFER_COUNT = 3;
     private static final int REROLL_PRICE = 5;
 
+    private int nextShopBonusCards = 0;
+    private int nextShopBonusCharms = 0;
+
+    private int currentCardOfferCount = OFFER_COUNT;
+    private int currentCharmOfferCount = CHARM_OFFER_COUNT;
+
     private static final float OFFER_START_Y = 155f;
     private static final float OFFER_TARGET_WIDTH = 620f;
     private static final float CHARM_OFFER_START_Y = OFFER_START_Y - 250f;
@@ -103,6 +109,12 @@ public class Shop extends InputAdapter {
     public void show() {
         returnOffersToPool();
         returnCharmOffersToPool();
+
+        currentCardOfferCount = OFFER_COUNT + nextShopBonusCards;
+        currentCharmOfferCount = CHARM_OFFER_COUNT + nextShopBonusCharms;
+        nextShopBonusCards = 0;
+        nextShopBonusCharms = 0;
+
         drawCardOffers();
         drawCharmOffers();
         visible = true;
@@ -475,7 +487,7 @@ public class Shop extends InputAdapter {
 
     private void drawCardOffers() {
         int attempts = 0;
-        while (offers.size() < OFFER_COUNT && attempts++ < 30) {
+        while (offers.size() < currentCardOfferCount && attempts++ < 30) {
             Card card = Roulette.getInstance().getCardPool().getRandomCard();
             if (card == null) break;
             if (runState.ownsCardType(card)) {
@@ -488,7 +500,7 @@ public class Shop extends InputAdapter {
 
     private void drawCharmOffers() {
         int attempts = 0;
-        while (charmOffers.size() < CHARM_OFFER_COUNT && attempts++ < 30) {
+        while (charmOffers.size() < currentCharmOfferCount && attempts++ < 30) {
             Charm charm = Roulette.getInstance().getCharmPool().getRandomCharm();
             if (charm == null) break;
             if (runState.ownsCharmType(charm) || offersContainType(charmOffers, charm)) {
@@ -544,7 +556,7 @@ public class Shop extends InputAdapter {
      * @param left The x-coordinate of the left side of the shop panel.
      */
     private void layoutCardOffers(float left) {
-        int size = OFFER_COUNT; // offers.size();
+        int size = currentCardOfferCount; // offers.size();
         float spacing = (OFFER_TARGET_WIDTH - (size * 96f)) / size;
         float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
         for (int i = 0; i < offers.size(); i++) {
@@ -562,7 +574,7 @@ public class Shop extends InputAdapter {
      * @param left The x-coordinate of the left side of the shop panel.
      */
     private void layoutCharmOffers(float left) {
-        int size = CHARM_OFFER_COUNT; // offers.size();
+        int size = currentCharmOfferCount; // offers.size();
         float spacing = (OFFER_TARGET_WIDTH - (size * 64f)) / size;
         float targetX = spacing / 2 + left + WIDTH / 2 - OFFER_TARGET_WIDTH / 2;
         for (int i = 0; i < charmOffers.size(); i++) {
@@ -572,6 +584,11 @@ public class Shop extends InputAdapter {
             }
             targetX += spacing + charm.getWidth();
         }
+    }
+
+    public void addNextShopStock(int additionalCards, int additionalCharms) {
+        nextShopBonusCards += additionalCards;
+        nextShopBonusCharms += additionalCharms;
     }
 
     private Vector2 screenToWorld(int screenX, int screenY) {
