@@ -14,6 +14,7 @@ import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType;
 import com.badlogic.gdx.physics.box2d.CircleShape;
+import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.World;
 
@@ -64,6 +65,18 @@ public class Ball extends GameObject {
     private Tween dropTween;
     private float settleTimer = 0f;
     private float lowSpeedTimer = 0f;
+
+    // ---- Bounce charm mechanic -----------------------------------------
+    // Total number of Bouncy charms consumed this run. Persists across spins
+    // and is cleared by resetBounciness() when the game restarts.
+    private int bounceCharmCount = 0;
+    // How many charm bounces are still to be performed during the current spin.
+    private int charmBouncesRemaining = 0;
+    // Whether the ball was touching another fixture on the last physics step,
+    // used to detect a fresh collision (rising edge) for charm bounces.
+    private boolean wasContacting = false;
+    // Cycles through the bounce sound clips so consecutive bounces sound varied.
+    private int bounceSoundIndex = 0;
 
     // Visibility
     private boolean visible = false;
@@ -136,6 +149,10 @@ public class Ball extends GameObject {
         this.currentAngleRad = startAngleRad;
         this.currentRadius = outerTrackRadius;
         this.physicsAccumulator = 0f;
+
+        // Re-arm the charm bounces granted by consumed Bouncy charms.
+        this.charmBouncesRemaining = bounceCharmCount;
+        this.wasContacting = false;
 
         Vector2 startPos = new Vector2(
             wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
@@ -305,6 +322,9 @@ public class Ball extends GameObject {
 
         applyTangentialDamping();
 
+        // Give the ball the extra bounces granted by consumed Bouncy charms.
+        updateCharmBounces();
+
         float speed = ball.getLinearVelocity().len();
 
         // Speed to enter SETTLE state
@@ -403,7 +423,7 @@ public class Ball extends GameObject {
     }
     /**
      * Determines which tile the ball has landed on by
-     * checking for overlaps between the ball's circular area 
+     * checking for overlaps between the ball's circular area
      * and the polygons of each tile.
      */
     private Tile getLandedTile() {
@@ -468,4 +488,76 @@ public class Ball extends GameObject {
     @Override
     public void dispose() {
         world.destroyBody(ball);
-    }}
+    }
+
+    /**
+     * Grants the ball an extra bounce for each Bouncy Charm consumed. These
+     * bounces persist across spins for the whole run and are reset to zero by
+     * {@link #resetBounciness()} when the game restarts.
+     *
+     * @param amount the number of extra bounces to add (typically 1 per charm)
+     */
+    public void addBounciness(int amount) {
+        bounceCharmCount += amount;
+    }
+
+    /**
+     * Clears every bounce granted by Bouncy charms. Called when the game is
+     * restarted so a fresh run starts with no bounce enhancement.
+     */
+    public void resetBounciness() {
+        bounceCharmCount = 0;
+        charmBouncesRemaining = 0;
+        wasContacting = false;
+    }
+
+    /**
+     * Detects a fresh collision with the wheel while the ball is BOUNCING and,
+     * if a charm bounce is still available, kicks the ball outward so it
+     * performs an extra, clearly visible bounce. Each bounce consumes one of
+     * the bounces granted by the Bouncy charms activated so far.
+     */
+    private void updateCharmBounces() {
+        boolean contacting = isBallContacting();
+
+        if (contacting && !wasContacting && charmBouncesRemaining > 0) {
+            charmBouncesRemaining--;
+            performCharmBounce();
+        }
+
+        wasContacting = contacting;
+    }
+
+    /**
+     * Returns whether the ball's fixture is currently in touching contact with
+     * any other fixture in the physics world.
+     *
+     * @return true if the ball is touching another fixture, false otherwise
+     */
+    private boolean isBallContacting() {
+        for (Contact contact : world.getContactList()) {
+            if (!contact.isTouching() || !contact.isEnabled()) {
+                continue;
+            }
+            if (contact.getFixtureA().getBody() == ball || contact.getFixtureB().getBody() == ball) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Applies an outward impulse so the ball visibly bounces off the wheel, and
+     * plays a bounce sound. Called exactly once per charm bounce.
+     */
+    private void performCharmBounce() {
+        Vector2 pos = ball.getPosition();
+        Vector2 radialOutward = new Vector2(pos).sub(wheelCenter).nor();
+        float impulseMagnitude = ball.getMass() * 250f;
+        ball.applyLinearImpulse(radialOutward.scl(impulseMagnitude), pos, true);
+
+        bounceSoundIndex = (bounceSoundIndex % 5) + 1;
+        SoundManager.getInstance().playSound("bounce" + bounceSoundIndex);
+    }
+
+}

@@ -10,6 +10,7 @@ import io.wasabi.urg.elements.charm.*;
 public class CharmPool {
     private static final List<Supplier<Charm>> CHARM_SUPPLIERS = List.of(
         BlackCharm::new,
+        BouncyCharm::new,
         EraserCharm::new,
         GoldCharm::new,
         MetallicCharm::new,
