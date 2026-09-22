@@ -5,6 +5,7 @@ import io.wasabi.urg.elements.boss.Bartender;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.boss.Gamer;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.state.RunState;
 
 import java.util.ArrayList;
@@ -110,7 +111,7 @@ public class RoundManager {
         }
 
         runState.setChips(STARTING_CHIPS);
-        runState.triggerEffects("roundStart");
+        runState.triggerEffects(EffectType.ROUND_START);
     }
 
     /**
@@ -134,7 +135,7 @@ public class RoundManager {
             lastTile.onLanded();
         }
 
-        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.AFTER_SPIN);
 
         if (runState.getChips() >= currentConfig.getQuota()) {
             advance();
@@ -148,7 +149,7 @@ public class RoundManager {
      * If the round is complete, it will either advance to the next round or end the run.
      */
     public void advance() {
-        runState.triggerEffects("roundEnd");
+        runState.triggerEffects(EffectType.ROUND_END);
         runState.recordRoundBalance();
 
         // Reset tile multiplier for the next round

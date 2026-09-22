@@ -2,7 +2,6 @@ package io.wasabi.urg.elements.card;
 
 import java.util.EnumMap;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -13,6 +12,7 @@ import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.FloatingText;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
@@ -79,7 +79,7 @@ public abstract class Card extends GameObject {
     public float getFlatBonus(Tile winningTile, int totalStaked, int chipBalance) { return 0f; }
     public int getAdditionalEffectTriggers() { return 0; }
     public int getEffectTriggerMultiplier() { return 1; }
-    public void afterCardEffects(String effectType) {}
+    public void afterCardEffects(EffectType effectType) {}
     public void removedEffect() {}
 
     @Override

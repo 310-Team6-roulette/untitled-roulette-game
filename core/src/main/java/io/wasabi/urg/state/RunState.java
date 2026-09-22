@@ -452,32 +452,30 @@ public final class RunState {
      *
      * @param effectType The type of effect to trigger.
      */
-    public void triggerEffects(String effectType) {
-        int triggerCount = getCardEffectTriggerCount();
-
+    public void triggerEffects(EffectType effectType) {
         triggerCardEffects(effectType);
         triggerBossEffects(effectType);
     }
 
-    private void triggerCardEffects(String effectType) {
+    private void triggerCardEffects(EffectType effectType) {
         int triggerCount = getCardEffectTriggerCount();
 
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
                 switch (effectType) {
-                    case "roundStart":
+                    case ROUND_START:
                         card.roundStartEffect();
                         break;
-                    case "beforeSpin":
+                    case BEFORE_SPIN:
                         card.beforeSpinEffect();
                         break;
-                    case "afterSpin":
+                    case AFTER_SPIN:
                         card.afterSpinEffect();
                         break;
-                    case "roundEnd":
+                    case ROUND_END:
                         card.roundEndEffect();
                         break;
-                    case "charmConsumed":
+                    case CHARM_CONSUMED:
                         card.charmConsumedEffect();
                         break;
                     default:
@@ -491,25 +489,25 @@ public final class RunState {
         }
     }
 
-    private void triggerBossEffects(String effectType) {
+    private void triggerBossEffects(EffectType effectType) {
         if (boss == null) {
             return;
         }
 
         switch (effectType) {
-            case "roundStart":
+            case ROUND_START:
                 boss.roundStartEffect();
                 break;
-            case "beforeSpin":
+            case BEFORE_SPIN:
                 boss.beforeSpinEffect();
                 break;
-            case "afterSpin":
+            case AFTER_SPIN:
                 boss.afterSpinEffect();
                 break;
-            case "roundEnd":
+            case ROUND_END:
                 boss.roundEndEffect();
                 break;
-            case "charmConsumed":
+            case CHARM_CONSUMED:
                 boss.charmConsumedEffect();
                 break;
             default:
