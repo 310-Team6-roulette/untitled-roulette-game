@@ -289,6 +289,19 @@ public class Wheel {
         wheelVelocityTween = new Tween(duration, initialSpeed, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
+    /**
+     * Brings the wheel smoothly to a stop within the given time, if it would otherwise keep spinning longer.
+     *
+     * @param maxDuration The longest the wheel may take to stop, in seconds
+     */
+    public void brake(float maxDuration) {
+        if (!isSpinning() || wheelVelocityTween.getTimeRemaining() <= maxDuration) {
+            return;
+        }
+        wheelVelocityTween = new Tween(maxDuration, body.getAngularVelocity(), 0,
+            Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    }
+
     public void dispose() {
         wheelBackground.dispose();
         world.destroyBody(body);

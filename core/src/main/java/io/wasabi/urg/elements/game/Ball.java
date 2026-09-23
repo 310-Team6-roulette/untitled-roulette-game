@@ -79,6 +79,10 @@ public class Ball extends GameObject {
     private Tile pocket;
     private float pocketAngle = 0f;
     private float pocketRadius = 0f;
+    // Bets are resolved once the wheel has come to rest under the settled ball
+    private boolean resultPending = false;
+    // Longest the wheel keeps turning after the ball has settled
+    private static final float WHEEL_BRAKE_TIME = 1.2f;
 
     // Inward pull of the sloped bowl towards the pockets
     private static final float BOWL_PULL = 700f;
@@ -198,6 +202,7 @@ public class Ball extends GameObject {
         this.currentRadius = outerTrackRadius;
         this.physicsAccumulator = 0f;
         this.pocket = null;
+        this.resultPending = false;
 
         Vector2 startPos = new Vector2(
             wheelCenter.x + outerTrackRadius * (float) Math.cos(startAngleRad),
@@ -241,6 +246,10 @@ public class Ball extends GameObject {
         }
         if (pocket != null) {
             placeInPocket();
+        }
+        if (resultPending && !wheel.isSpinning()) {
+            resultPending = false;
+            resolveResult();
         }
 
         updateSounds(dt);
@@ -490,6 +499,15 @@ public class Ball extends GameObject {
     }
 
     /**
+     * Stops the ball in its pocket and has the wheel brake, so the result is revealed as the wheel comes to rest.
+     */
+    private void finalizeStop() {
+        state = State.STOPPED;
+        resultPending = true;
+        wheel.brake(WHEEL_BRAKE_TIME);
+    }
+
+    /**
      * Places the ball in its pocket using the wheel's current rotation, so it turns with the wheel.
      */
     private void placeInPocket() {
@@ -510,12 +528,9 @@ public class Ball extends GameObject {
     }
 
     /**
-     * Finalizes the ball's stop, resolving bets and triggering any necessary game state changes.
-     * The wheel is left to coast to a stop on its own rather than being frozen here.
+     * Resolves bets for the pocket the ball stopped in and triggers any necessary game state changes.
      */
-    private void finalizeStop() {
-        state = State.STOPPED;
-
+    private void resolveResult() {
         List<Bet> savedBets = new ArrayList<>(Roulette.getInstance().getRunState().getActiveBets());
 
         Tile tile = pocket;
