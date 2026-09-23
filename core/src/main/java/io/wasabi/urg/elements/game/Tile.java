@@ -335,6 +335,20 @@ public class Tile extends GameObject {
         update();
     }
 
+    /**
+     * Gives the fret's kinematic body the velocity it has while riding the spinning wheel, so
+     * Box2D pushes the ball with it instead of the fret teleporting into the ball each frame.
+     *
+     * @param angularVelocity The wheel's angular velocity in radians per second.
+     */
+    public void setSpinVelocity(float angularVelocity) {
+        Vector2 fretPos = body.getPosition();
+        body.setAngularVelocity(angularVelocity);
+        body.setLinearVelocity(
+                -angularVelocity * (fretPos.y - position.y),
+                angularVelocity * (fretPos.x - position.x));
+    }
+
     public void setSize(float size) {
         this.size = size;
         update();
