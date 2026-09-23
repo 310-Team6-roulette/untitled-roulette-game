@@ -21,6 +21,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.betting.WinBreakdown;
+import io.wasabi.urg.managers.BallWeightCalculator;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.screens.GameScreen;
@@ -60,6 +61,7 @@ public class Ball extends GameObject {
     private State state = State.STOPPED;
     private float tangentialSpeed = 0f;
     private boolean freeSpin = false;
+    private float weightMultiplier = 1f;
 
     private Tween dropTween;
     private float settleTimer = 0f;
@@ -219,7 +221,7 @@ public class Ball extends GameObject {
         float radialComp = vel.dot(radialDir);
         float tangentComp = vel.dot(tangentDir);
 
-        float tangentialDampingPerSecond = 0.6f;
+        float tangentialDampingPerSecond = BallWeightCalculator.adjustDampingPerSecond(0.6f, weightMultiplier);
         float dampingThisFrame = 1f - (float) Math.pow(1f - tangentialDampingPerSecond, FIXED_TIMESTEP);
         tangentComp *= (1f - dampingThisFrame);
 
@@ -237,11 +239,11 @@ public class Ball extends GameObject {
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        float decelerationFactor = 0.5f;
+        float decelerationFactor = BallWeightCalculator.adjustDecelerationFactor(0.5f, weightMultiplier);
         tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
 
         // Speed to enter DROPPING state
-        float dropSpeedThreshold = 400f;
+        float dropSpeedThreshold = BallWeightCalculator.adjustSpeedThreshold(400f, weightMultiplier);
         if (tangentialSpeed <= dropSpeedThreshold) {
             float targetRadius = innerWheelRadius - (2 * radius);
             // tune this — how long the drop takes
@@ -267,7 +269,7 @@ public class Ball extends GameObject {
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        float dropDecelerationFactor = 0.2f;
+        float dropDecelerationFactor = BallWeightCalculator.adjustDecelerationFactor(0.2f, weightMultiplier);
         tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
 
         if (dropTween.isComplete() || currentRadius <= innerWheelRadius - (2 * radius)) {
@@ -296,7 +298,7 @@ public class Ball extends GameObject {
         float bowlPullMag = ball.getMass() * 700f;
         ball.applyForceToCenter(radialInward.scl(bowlPullMag), true);
 
-        float bounceDampingPerSecond = 0.25f;
+        float bounceDampingPerSecond = BallWeightCalculator.adjustDampingPerSecond(0.25f, weightMultiplier);
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
         Vector2 vel = ball.getLinearVelocity();
         ball.setLinearVelocity(
@@ -308,12 +310,12 @@ public class Ball extends GameObject {
         float speed = ball.getLinearVelocity().len();
 
         // Speed to enter SETTLE state
-        float settleSpeedThreshold = 50f;
+        float settleSpeedThreshold = BallWeightCalculator.adjustSpeedThreshold(50f, weightMultiplier);
         if (speed <= settleSpeedThreshold) {
             lowSpeedTimer += FIXED_TIMESTEP;
 
             // must stay slow this long before settling
-            float lowSpeedTimeRequired = 0.5f;
+            float lowSpeedTimeRequired = BallWeightCalculator.adjustTimeRequired(0.5f, weightMultiplier);
             if (lowSpeedTimer >= lowSpeedTimeRequired) {
                 settleTimer = 0f;
                 state = State.SETTLING;
@@ -337,7 +339,7 @@ public class Ball extends GameObject {
             return;
         }
 
-        float bounceDampingPerSecond = 0.99f;
+        float bounceDampingPerSecond = BallWeightCalculator.adjustDampingPerSecond(0.99f, weightMultiplier);
         float dampingThisFrame = 1f - (float) Math.pow(1f - bounceDampingPerSecond, Ball.FIXED_TIMESTEP);
 
         applyTangentialDamping();
@@ -348,7 +350,7 @@ public class Ball extends GameObject {
             vel.y * (1f - dampingThisFrame));
 
         settleTimer += Ball.FIXED_TIMESTEP;
-        float settleTimeRequired = 0.5f;
+        float settleTimeRequired = BallWeightCalculator.adjustTimeRequired(0.5f, weightMultiplier);
         if (settleTimer >= settleTimeRequired) {
             finalizeStop();
         }
@@ -447,6 +449,22 @@ public class Ball extends GameObject {
 
     public Body getBody() {
         return ball;
+    }
+
+    public float getWeightMultiplier() {
+        return weightMultiplier;
+    }
+
+    /**
+     * Sets a multiplier applied to the ball's effective weight, used by cards
+     * such as OverweightSticker to make it decelerate faster and drop onto
+     * the wheel sooner. 1f is the default weight.
+     */
+    public void setWeightMultiplier(float weightMultiplier) {
+        if (weightMultiplier <= 0f) {
+            throw new IllegalArgumentException("weightMultiplier must be greater than 0");
+        }
+        this.weightMultiplier = weightMultiplier;
     }
 
     @Override
