@@ -14,15 +14,19 @@ import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
+import io.wasabi.urg.screens.MainMenuScreen;
 import io.wasabi.urg.state.RunState;
 
 public class Roulette extends Game {
     private static final Roulette INSTANCE = new Roulette();
+
     private GameScreen gameScreen;
     private BettingScreen bettingScreen;
+    private MainMenuScreen mainMenuScreen;
+
     private final RunState runState = new RunState();
-    private final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
-    private final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
+    private static final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
+    private static final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
 
@@ -65,15 +69,14 @@ public class Roulette extends Game {
         cardPool = new CardPool();
         charmPool = new CharmPool();
 
-        int STARTING_MONEY = 100;
-        runState.reset(STARTING_MONEY);
+        int startingMoney = 100;
+        runState.reset(startingMoney);
 
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
+        this.mainMenuScreen = new MainMenuScreen(this);
 
-        this.setScreen(this.gameScreen);
-
-        roundManager.startRound();
+        this.setScreen(this.mainMenuScreen);
     }
 
     @Override
@@ -93,6 +96,10 @@ public class Roulette extends Game {
         if (getGameScreen() != null) {
             getGameScreen().dispose();
         }
+        if (getMainMenuScreen() != null) {
+            getMainMenuScreen().dispose();
+        }
+
         soundManager.dispose();
         TextureManager.getInstance().dispose();
     }
@@ -119,6 +126,10 @@ public class Roulette extends Game {
 
     public BettingScreen getBettingScreen() {
         return bettingScreen;
+    }
+
+    public MainMenuScreen getMainMenuScreen() {
+        return mainMenuScreen;
     }
 
     public RoundManager getRoundManager() {
