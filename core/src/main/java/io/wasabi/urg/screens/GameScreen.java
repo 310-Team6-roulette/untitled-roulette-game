@@ -111,7 +111,7 @@ public class GameScreen implements Screen {
         this.gameState = GameState.ROUND;
 
         this.wheel = new Wheel(world, wheelCenter);
-        this.ball = new Ball(world, 6f, wheelCenter);
+        this.ball = new Ball(world, 6f, wheel);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(spriteBatch, game.getViewport());
@@ -138,7 +138,6 @@ public class GameScreen implements Screen {
     private void launchSpin(boolean free) {
         float initialSpeed = random.nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
         Roulette.getInstance().getRunState().triggerEffects(EffectType.BEFORE_SPIN);
-        SoundManager.getInstance().playSound("spin1");
         ball.setVisible(true);
 
         if (free) {
