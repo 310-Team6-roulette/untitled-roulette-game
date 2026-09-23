@@ -105,10 +105,10 @@ public final class MainMenuScreen extends ScreenAdapter {
         }
     }
 
-    // Placeholder actions are intentionally small and explicit so the menu can evolve
-    // into screen transitions without mixing future logic into the render pipeline.
     private void handlePlayAction() {
-        // Placeholder for the next menu-navigation commit.
+        int startingChips = 100;
+        game.getRunState().reset(startingChips);
+        game.setScreen(game.getGameScreen());
     }
 
     private void handleTutorialAction() {
@@ -124,7 +124,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     }
 
     private void handleQuitAction() {
-        // Placeholder until the quit flow is implemented.
+        Gdx.app.exit();
     }
 
     @Override
