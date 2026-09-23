@@ -31,6 +31,10 @@ public class Charm extends GameObject{
     private int sellPrice = 1;
 
     protected Charm() {
+        this(null);
+    }
+
+    protected Charm(String textureName) {
         this.x = 0;
         this.y = 0;
         this.width = 64;
@@ -39,7 +43,7 @@ public class Charm extends GameObject{
         tooltip.setTitle("Charm");
         tooltip.setDescription("Edit this in the concrete class!!");
 
-        loadSprite();
+        loadSprite(textureName);
     }
 
     /*
@@ -47,8 +51,9 @@ public class Charm extends GameObject{
      * The card's class name is used to determine the texture file name.
      * So use the class name of the card as the texture file name (without the .png extension).
      */
-    private void loadSprite() {
-        this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
+    private void loadSprite(String textureName) {
+        String name = textureName == null ? getClass().getSimpleName() : textureName;
+        this.texture = TextureManager.getInstance().getTexture(name, "charm");
     }
 
     public void consume() {
