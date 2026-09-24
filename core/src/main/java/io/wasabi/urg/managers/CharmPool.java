@@ -14,6 +14,7 @@ public class CharmPool {
         GoldCharm::new,
         MetallicCharm::new,
         MirrorCharm::new,
+        PaperCharm::new,
         RedCharm::new,
         ScrambledCharm::new,
         StrengthCharm::new,

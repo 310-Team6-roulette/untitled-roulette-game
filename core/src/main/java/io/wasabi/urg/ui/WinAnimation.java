@@ -171,7 +171,12 @@ public class WinAnimation {
         // float-accumulated running value, so the number that lands matches
         // exactly what RunState.applyWinBreakdown will actually add.
         steps.add(new Step("x" + trimTrailingZero(breakdown.getGlobalMultiplier()), GLOBAL_MULT_COLOR,
-            breakdown.getFinalTotal()));
+            Math.round(running * breakdown.getGlobalMultiplier())));
+
+        if (breakdown.getPostMultiplierBonus() > 0) {
+            steps.add(new Step("+" + trimTrailingZero(breakdown.getPostMultiplierBonus()), FLAT_COLOR,
+                breakdown.getFinalTotal()));
+        }
     }
 
     public boolean isActive() {
