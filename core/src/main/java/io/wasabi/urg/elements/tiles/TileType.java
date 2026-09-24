@@ -31,6 +31,7 @@ public abstract class TileType implements Disposable {
 
     protected float betMultiplier = 1.0f; // multiplier for bets on this tile
     protected float flatBonus = 0f;
+    protected float postMultiplierBonus = 0f;
 
     private int number;
     protected Tooltip tooltip = new Tooltip(0.5f, 0.5f);
@@ -136,4 +137,6 @@ public abstract class TileType implements Disposable {
     public float getBetMultiplier() { return betMultiplier; }
     public void setFlatBonus(float flatBonus) { this.flatBonus = flatBonus; }
     public float getFlatBonus() { return flatBonus; }
+    public void setPostMultiplierBonus(float postMultiplierBonus) { this.postMultiplierBonus = postMultiplierBonus; }
+    public float getPostMultiplierBonus() { return postMultiplierBonus; }
 }
