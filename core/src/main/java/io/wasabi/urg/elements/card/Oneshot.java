@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.card;
 
 import io.wasabi.urg.Roulette;
+import io.wasabi.urg.state.EffectType;
 
 public class Oneshot extends Card {
     public Oneshot() {
@@ -18,8 +19,8 @@ public class Oneshot extends Card {
     }
 
     @Override
-    public void afterCardEffects(String effectType) {
-        if ("roundStart".equals(effectType)) {
+    public void afterCardEffects(EffectType effectType) {
+        if (effectType == EffectType.ROUND_START) {
             Roulette.getInstance().getRoundManager().setSpinsRemaining(1);
         }
         triggerDisplay();

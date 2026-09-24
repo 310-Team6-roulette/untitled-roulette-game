@@ -21,6 +21,7 @@ public final class CardPool {
         commonCards.add(new EvenCard());
         commonCards.add(new Jackpot());
         commonCards.add(new GoldenTicket());
+        commonCards.add(new OverweightSticker());
 
         uncommonCards.add(new AllIn());
         uncommonCards.add(new FourLeafClover());
