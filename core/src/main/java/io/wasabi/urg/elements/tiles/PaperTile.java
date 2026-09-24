@@ -13,6 +13,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.game.Tile;
 
 public class PaperTile extends TileType {
+    static final float POST_MULTIPLIER_BONUS = 100f;
     private static final Texture PAPER_TEXTURE = new Texture(Gdx.files.internal("tiles/PaperTile.png"));
 
     private final Tile tile;
@@ -23,7 +24,7 @@ public class PaperTile extends TileType {
         setColour(originalType.getColour());
         setNumber(originalType.getNumber());
         setBetMultiplier(originalType.getBetMultiplier());
-        setPostMultiplierBonus(100f);
+        setPostMultiplierBonus(POST_MULTIPLIER_BONUS);
         tooltip.setDescriptionVisible(true);
         tooltip.setDescription("Gain an extra 100 chips when scored. This tile breaks after scoring");
         tooltip.addType("PAPER", com.badlogic.gdx.graphics.Color.BLACK, com.badlogic.gdx.graphics.Color.WHITE);
