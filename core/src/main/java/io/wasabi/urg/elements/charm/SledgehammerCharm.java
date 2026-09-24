@@ -39,11 +39,15 @@ public class SledgehammerCharm extends Charm {
         }
 
         List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
-        if (selectedTiles.size() != 1) {
+        if (!hasExactlyOneSelection(selectedTiles)) {
             showError("Select one tile!");
             return false;
         }
         return true;
+    }
+
+    static boolean hasExactlyOneSelection(List<Tile> selectedTiles) {
+        return selectedTiles.size() == 1;
     }
 
     private void showError(String message) {
