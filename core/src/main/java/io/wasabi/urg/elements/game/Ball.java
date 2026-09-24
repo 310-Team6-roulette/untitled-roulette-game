@@ -23,6 +23,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.elements.betting.Bet;
 import io.wasabi.urg.elements.betting.WinBreakdown;
+import io.wasabi.urg.managers.BallFrictionCalculator;
 import io.wasabi.urg.managers.BallWeightCalculator;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
@@ -359,7 +360,7 @@ public class Ball extends GameObject {
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        float adjustedDecelerationFactor = 1f - ((1f - 0.5f) * frictionMultiplier);
+        float adjustedDecelerationFactor = BallFrictionCalculator.adjustDecelerationFactor(0.5f, frictionMultiplier);
         float decelerationFactor = BallWeightCalculator.adjustDecelerationFactor(adjustedDecelerationFactor, weightMultiplier);
         tangentialSpeed *= (float) Math.pow(decelerationFactor, delta);
 
@@ -390,7 +391,7 @@ public class Ball extends GameObject {
 
         setPositionFromPolar(currentAngleRad, currentRadius);
 
-        float adjustedDropDecelerationFactor = 1f - ((1f - 0.2f) * frictionMultiplier);
+        float adjustedDropDecelerationFactor = BallFrictionCalculator.adjustDecelerationFactor(0.2f, frictionMultiplier);
         float dropDecelerationFactor = BallWeightCalculator.adjustDecelerationFactor(adjustedDropDecelerationFactor, weightMultiplier);
         tangentialSpeed *= (float) Math.pow(dropDecelerationFactor, delta);
 
@@ -424,8 +425,10 @@ public class Ball extends GameObject {
 
         keepInsideBowl(distance, radialInward);
 
+
+        float frictionAdjustedDamping = BallFrictionCalculator.adjustDampingPerSecond(0.25f, frictionMultiplier);
         Vector2 surfaceVel = getWheelSurfaceVelocity(ball.getPosition());
-        applyRelativeDamping(BallWeightCalculator.adjustDampingPerSecond(0.25f * frictionMultiplier, weightMultiplier), surfaceVel);
+        applyRelativeDamping(BallWeightCalculator.adjustDampingPerSecond(frictionAdjustedDamping, weightMultiplier), surfaceVel);
         applyTangentialDamping(surfaceVel);
 
         relativeSpeed = new Vector2(ball.getLinearVelocity()).sub(surfaceVel).len();
@@ -435,12 +438,14 @@ public class Ball extends GameObject {
         boolean inPocket = distance <= wheel.getRadius() + wheel.getTileSize();
 
         // Speed (relative to the wheel) to enter SETTLE state
-        float settleSpeedThreshold = BallWeightCalculator.adjustSpeedThreshold(50f / frictionMultiplier, weightMultiplier);
+        float frictionAdjustedThreshold = BallFrictionCalculator.adjustSpeedThreshold(50f, frictionMultiplier);
+        float settleSpeedThreshold = BallWeightCalculator.adjustSpeedThreshold(frictionAdjustedThreshold, weightMultiplier);
         if (relativeSpeed <= settleSpeedThreshold && inPocket) {
             lowSpeedTimer += FIXED_TIMESTEP;
 
             // must stay slow this long before settling
-            float lowSpeedTimeRequired = BallWeightCalculator.adjustTimeRequired(0.5f / frictionMultiplier, weightMultiplier);
+            float frictionAdjustedTime = BallFrictionCalculator.adjustTimeRequired(0.5f, frictionMultiplier);
+            float lowSpeedTimeRequired = BallWeightCalculator.adjustTimeRequired(frictionAdjustedTime, weightMultiplier);
             if (lowSpeedTimer >= lowSpeedTimeRequired) {
                 startSettling();
             }
@@ -692,7 +697,7 @@ public class Ball extends GameObject {
     public void setFrictionMultiplier(float frictionMultiplier) {
         this.frictionMultiplier = frictionMultiplier;
     }
-  
+
     public float getWeightMultiplier() {
         return weightMultiplier;
     }
