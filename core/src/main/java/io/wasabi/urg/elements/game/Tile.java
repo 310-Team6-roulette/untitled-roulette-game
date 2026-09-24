@@ -365,6 +365,12 @@ public class Tile extends GameObject {
         update();
     }
 
+    public void setTemporaryType(TileType type) {
+        this.type = type;
+        layoutVersion++;
+        update();
+    }
+
     public void setBetMultiplier(float betMultiplier) {
         type.setBetMultiplier(betMultiplier);
     }
@@ -376,6 +382,8 @@ public class Tile extends GameObject {
     public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
 
     public float getFlatBonus() { return type.getFlatBonus(); }
+
+    public float getPostMultiplierBonus() { return type.getPostMultiplierBonus(); }
 
     public TileType.TileColour getColor() {
         return type.getColour();
