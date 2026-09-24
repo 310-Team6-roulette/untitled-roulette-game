@@ -12,7 +12,7 @@ import io.wasabi.urg.ui.FloatingText;
 public class SledgehammerCharm extends Charm {
 
     public SledgehammerCharm() {
-        super("charmBlank");
+        super("SledgehammerCharm");
         tooltip.setTitle("Sledgehammer Charm");
         tooltip.setDescription("Choose one tile and permanently remove it from the wheel.");
     }
