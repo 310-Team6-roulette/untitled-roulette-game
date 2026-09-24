@@ -6,6 +6,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
@@ -51,7 +52,7 @@ public class Charm extends GameObject{
     }
 
     public void consume() {
-        Roulette.getInstance().getRunState().triggerEffects("charmConsumed");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.CHARM_CONSUMED);
     }
     public boolean requirements() { return true; }
 
