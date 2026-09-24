@@ -8,6 +8,7 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import io.wasabi.urg.managers.CardPool;
 import io.wasabi.urg.managers.CharmPool;
 import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.managers.HighScoreManager;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.RoundManager;
 import io.wasabi.urg.managers.SoundManager;
@@ -29,6 +30,8 @@ public class Roulette extends Game {
     private static final float MIN_WORLD_HEIGHT = 900f; // Minimum height of the game world
     private final RoundManager roundManager = new RoundManager(runState);
     private final SoundManager soundManager = SoundManager.getInstance();
+
+    private HighScoreManager highScoreManager;
 
     // Item Pools
     private CardPool cardPool;
@@ -65,6 +68,8 @@ public class Roulette extends Game {
         soundManager.setMusicVolume(0.4f);
         soundManager.playMusic("bgMusic", true);
         TextureManager.getInstance().initialize();
+
+        highScoreManager = new HighScoreManager();
 
         cardPool = new CardPool();
         charmPool = new CharmPool();
@@ -134,6 +139,10 @@ public class Roulette extends Game {
 
     public RoundManager getRoundManager() {
         return roundManager;
+    }
+
+    public HighScoreManager getHighScoreManager() {
+        return highScoreManager;
     }
 
     public CardPool getCardPool() {

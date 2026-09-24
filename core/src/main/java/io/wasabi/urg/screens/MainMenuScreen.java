@@ -76,7 +76,12 @@ public final class MainMenuScreen extends ScreenAdapter {
         renderer.drawBackground(game.getWorldWidth(), game.getWorldHeight());
         renderer.drawTitle(CONTENT_CENTER_X, TITLE_SCALE);
         renderer.drawMenuButtons(menuButtons, inputHandler);
-        renderer.drawHighScorePlaceholder(WOOD_CENTER_X, 235f);
+        renderer.drawHighScore(
+            WOOD_CENTER_X,
+            235f,
+            game.getHighScoreManager().getHighScoreAct(),
+            game.getHighScoreManager().getHighScoreRound()
+        );
     }
 
     /**

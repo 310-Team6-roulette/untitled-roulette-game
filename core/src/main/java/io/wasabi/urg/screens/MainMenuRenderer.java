@@ -142,18 +142,15 @@ public final class MainMenuRenderer {
         spriteBatch.end();
     }
 
-    /**
-     * Draws the placeholder score panel using the same visual language as the gameplay UI
-     * so the menu feels consistent with the rest of the project.
-     */
-    public void drawHighScorePlaceholder(float panelCenterX, float panelY) {
+    /** Draws the saved best act and round using the menu panel style. */
+    public void drawHighScore(float panelCenterX, float panelY, int bestAct, int bestRound) {
         float panelWidth = 320f;
         float panelHeight = 140f;
         float textPadding = 12f;
         float lineGap = 12f;
 
-        String heading = "HIGH SCORE:";
-        String value = "PLACEHOLDER";
+        String heading = "BEST ROUND:";
+        String value = "Act " + bestAct + ", Round " + bestRound;
 
         scoreHeadingLayout.setText(buttonFont, heading);
         scoreValueLayout.setText(buttonFont, value);
