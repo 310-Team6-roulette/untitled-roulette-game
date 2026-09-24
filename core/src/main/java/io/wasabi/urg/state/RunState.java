@@ -126,7 +126,13 @@ public final class RunState {
 
     public boolean removeTile(Tile tile) {
         if (tiles.contains(tile)) {
-            return tiles.remove(tile);
+            selectedTiles.remove(tile);
+            tile.setSelected(false);
+            boolean removed = tiles.remove(tile);
+            if (removed) {
+                tile.dispose();
+            }
+            return removed;
         }
         return false;
     }
