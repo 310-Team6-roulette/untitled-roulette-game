@@ -4,6 +4,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.boss.Bartender;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.boss.Gamer;
+import io.wasabi.urg.elements.boss.Taxman;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.state.RunState;
@@ -50,6 +51,7 @@ public class RoundManager {
         // Act 1
         act1Bosses.add(new Bartender());
         act1Bosses.add(new Gamer());
+        act1Bosses.add(new Taxman());
     }
 
     /**
