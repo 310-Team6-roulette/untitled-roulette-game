@@ -15,7 +15,11 @@ public class HighScoreManager {
 
     /** Loads the saved progress, defaulting to no completed round. */
     public HighScoreManager() {
-        preferences = Gdx.app.getPreferences(PREFERENCES_NAME);
+        this(Gdx.app.getPreferences(PREFERENCES_NAME));
+    }
+
+    HighScoreManager(Preferences preferences) {
+        this.preferences = preferences;
         highScoreAct = preferences.getInteger(HIGH_SCORE_ACT_KEY, 0);
         highScoreRound = preferences.getInteger(HIGH_SCORE_ROUND_KEY, 0);
     }

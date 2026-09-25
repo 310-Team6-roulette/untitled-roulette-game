@@ -1,6 +1,7 @@
 package io.wasabi.urg.screens;
 
 import com.badlogic.gdx.InputAdapter;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 
 import io.wasabi.urg.Roulette;
@@ -11,7 +12,7 @@ import io.wasabi.urg.Roulette;
  * about and simpler to extend with additional buttons later.
  */
 public final class MainMenuInputHandler extends InputAdapter {
-    private final Roulette game;
+    private final OrthographicCamera camera;
     private final MainMenuButton[] buttons;
     private final MainMenuButton.ActionHandler actionHandler;
     private int hoveredIndex = -1;
@@ -22,7 +23,15 @@ public final class MainMenuInputHandler extends InputAdapter {
         MainMenuButton[] buttons,
         MainMenuButton.ActionHandler actionHandler
     ) {
-        this.game = game;
+        this(game.getCamera(), buttons, actionHandler);
+    }
+
+    public MainMenuInputHandler(
+        OrthographicCamera camera,
+        MainMenuButton[] buttons,
+        MainMenuButton.ActionHandler actionHandler
+    ) {
+        this.camera = camera;
         this.buttons = buttons;
         this.actionHandler = actionHandler;
     }
@@ -90,7 +99,7 @@ public final class MainMenuInputHandler extends InputAdapter {
      */
     private int findButtonAtScreenCoordinates(int screenX, int screenY) {
         Vector3 world = new Vector3(screenX, screenY, 0f);
-        game.getCamera().unproject(world);
+        camera.unproject(world);
 
         for (int i = 0; i < buttons.length; i++) {
             MainMenuButton button = buttons[i];
