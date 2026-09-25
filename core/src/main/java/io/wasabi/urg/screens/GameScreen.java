@@ -202,6 +202,7 @@ public class GameScreen implements Screen {
         game.getRunState().reset(STARTING_CHIPS);
         game.getRoundManager().reset();
         wheel.reset();
+        ball.resetBounciness(); 
         gameOver.hide();
         enterRoundScreen();
         inputMultiplexer.addProcessor(0, cardInputHandler);
