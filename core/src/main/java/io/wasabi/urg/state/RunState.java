@@ -275,6 +275,9 @@ public final class RunState {
         activeBets.clear();
 
         for (Card card : ownedCards) {
+            // Undo each card's lasting changes so a reused card doesn't carry them into the next run.
+            card.getTooltip().hide();
+            card.removedEffect();
             Roulette.getInstance().getCardPool().returnCard(card);
         }
         for (Charm charm : ownedCharms) {

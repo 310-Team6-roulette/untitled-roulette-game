@@ -225,6 +225,8 @@ public class GameScreen implements Screen {
     public void restartGame() {
         game.getRunState().reset(STARTING_CHIPS);
         game.getRoundManager().reset();
+        // Clears physics changes from consumed charms (e.g. IcyCharm), which aren't tracked in RunState.
+        ball.resetPhysicsModifiers();
         wheel.reset();
         gameOver.hide();
         enterRoundScreen();
