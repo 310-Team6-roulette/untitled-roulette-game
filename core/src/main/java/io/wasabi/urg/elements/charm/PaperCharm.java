@@ -36,24 +36,25 @@ public class PaperCharm extends Charm {
     @Override
     public boolean requirements() {
         if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f));
-            SoundManager.getInstance().playSound("error");
+            showError("You cannot use charms while the wheel is spinning!");
             return false;
         }
 
         List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
         if (selectedTiles.isEmpty()) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("Select one tile!", getX(), getY(), Color.RED, 1f));
-            SoundManager.getInstance().playSound("error");
+            showError("Select one tile!");
         } else if (selectedTiles.size() > 1) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You can only select one tile!", getX(), getY(), Color.RED, 1f));
-            SoundManager.getInstance().playSound("error");
+            showError("You can only select one tile!");
         } else if (selectedTiles.get(0).getType() instanceof PaperTile) {
-            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("This tile is already paper!", getX(), getY(), Color.RED, 1f));
-            SoundManager.getInstance().playSound("error");
+            showError("This tile is already paper!");
         } else {
             return true;
         }
         return false;
+    }
+
+    private void showError(String message) {
+        Roulette.getInstance().getGameScreen().addParticle(new FloatingText(message, getX(), getY(), Color.RED, 1f));
+        SoundManager.getInstance().playSound("error");
     }
 }
