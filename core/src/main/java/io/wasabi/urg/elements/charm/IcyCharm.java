@@ -9,7 +9,7 @@ import io.wasabi.urg.ui.FloatingText;
 
 public class IcyCharm extends Charm {
 
-    private static final float FRICTION_MULTIPLIER = 0.5f;
+    private static final float FRICTION_MULTIPLIER = 0.75f;
 
     public IcyCharm() {
         super();
