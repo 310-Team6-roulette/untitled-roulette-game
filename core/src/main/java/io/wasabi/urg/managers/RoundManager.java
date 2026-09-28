@@ -173,8 +173,13 @@ public class RoundManager {
 
     public void gameOver() {
         gameOver = true;
-        if (Roulette.getInstance().getGameScreen() != null) {
-            Roulette.getInstance().getGameScreen().showGameOver();
+
+        Roulette game = Roulette.getInstance();
+        // Record progress before showing the defeat screen so the menu can display it immediately.
+        game.getHighScoreManager().recordScore(act, round);
+
+        if (game.getGameScreen() != null) {
+            game.getGameScreen().showGameOver();
         }
     }
 
