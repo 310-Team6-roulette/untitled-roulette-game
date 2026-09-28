@@ -35,10 +35,10 @@ public class Shop extends InputAdapter {
 
     private static final int OFFER_COUNT = 4;
     private static final int CHARM_OFFER_COUNT = 3;
-    private static final int REROLL_PRICE = 5;
 
-    private int nextShopBonusCards = 0;
-    private int nextShopBonusCharms = 0;
+    private final ShopStock shopStock = new ShopStock(OFFER_COUNT, CHARM_OFFER_COUNT);
+
+    private static final int REROLL_PRICE = 5;
 
     private int currentCardOfferCount = OFFER_COUNT;
     private int currentCharmOfferCount = CHARM_OFFER_COUNT;
@@ -110,10 +110,10 @@ public class Shop extends InputAdapter {
         returnOffersToPool();
         returnCharmOffersToPool();
 
-        currentCardOfferCount = OFFER_COUNT + nextShopBonusCards;
-        currentCharmOfferCount = CHARM_OFFER_COUNT + nextShopBonusCharms;
-        nextShopBonusCards = 0;
-        nextShopBonusCharms = 0;
+        currentCardOfferCount = shopStock.getNextCardCount();
+        currentCharmOfferCount = shopStock.getNextCharmCount();
+
+        shopStock.consumeBonus();
 
         drawCardOffers();
         drawCharmOffers();
@@ -587,8 +587,15 @@ public class Shop extends InputAdapter {
     }
 
     public void addNextShopStock(int additionalCards, int additionalCharms) {
-        nextShopBonusCards += additionalCards;
-        nextShopBonusCharms += additionalCharms;
+        shopStock.addNextShopStock(additionalCards, additionalCharms);
+    }
+
+    public int getNextShopBonusCards() {
+        return shopStock.getNextCardCount();
+    }
+
+    public int getNextShopBonusCharms() {
+        return shopStock.getNextCharmCount();
     }
 
     private Vector2 screenToWorld(int screenX, int screenY) {
