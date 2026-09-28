@@ -179,7 +179,13 @@ public class RoundManager {
         game.getHighScoreManager().recordScore(act, round);
 
         if (game.getGameScreen() != null) {
-            game.getGameScreen().showGameOver();
+            game.getGameScreen().showGameOver(
+                currentConfig.getQuota(),
+                runState.getChips(),
+                spinsRemaining,
+                act,
+                round
+            );
         }
     }
 

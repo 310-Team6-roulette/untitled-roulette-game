@@ -167,8 +167,15 @@ public class GameScreen implements Screen {
                 SoundManager.getInstance().playSound("tileSelect");
                 enterRoundScreen();
             }
-        } else if (gameState == GameState.GAME_OVER && gameOver.isVisible() && Gdx.input.justTouched()) {
-            restartGame();
+        } else if (gameState == GameState.GAME_OVER) {
+            GameOver.Action action = gameOver.handleInput();
+            if (action == GameOver.Action.PLAY_AGAIN) {
+                SoundManager.getInstance().playSound("tileSelect");
+                restartGame();
+            } else if (action == GameOver.Action.MAIN_MENU) {
+                SoundManager.getInstance().playSound("tileSelect");
+                returnToMainMenu();
+            }
         }
     }
 
@@ -190,12 +197,29 @@ public class GameScreen implements Screen {
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
     }
 
-    public void showGameOver() {
+    /**
+     * Switches to the defeat screen after the player fails to meet the quota.
+     * @param quota The quota the player failed to reach.
+     * @param chips The chips the player had when the run ended.
+     * @param spinsRemaining The spins the player had left when the run ended.
+     * @param act The act the run ended on.
+     * @param round The round the run ended on.
+     */
+    public void showGameOver(int quota, int chips, int spinsRemaining, int act, int round) {
         this.gameState = GameState.GAME_OVER;
         inputMultiplexer.removeProcessor(cardInputHandler);
         inputMultiplexer.removeProcessor(charmInputHandler);
         inputMultiplexer.removeProcessor(shop);
-        gameOver.show();
+        gameOver.show(quota, chips, spinsRemaining, act, round);
+    }
+
+    /**
+     * Resets the run so the game screen is fresh for the next PLAY, then goes back to the main menu.
+     */
+    public void returnToMainMenu() {
+        restartGame();
+        gameOver.hideImmediately();
+        game.setScreen(game.getMainMenuScreen());
     }
 
     public void restartGame() {
@@ -553,6 +577,7 @@ public class GameScreen implements Screen {
         ball.dispose();
         wheel.dispose();
         betButtonTexture.dispose();
+        gameOver.dispose();
         world.dispose();
     }
 
