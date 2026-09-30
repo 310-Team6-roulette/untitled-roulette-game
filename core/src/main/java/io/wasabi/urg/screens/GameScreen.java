@@ -117,6 +117,8 @@ public class GameScreen implements Screen {
         this.shop = new Shop(spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(2, shop);
+        // First in line so the defeat screen blocks input to everything beneath it while it is up.
+        this.inputMultiplexer.addProcessor(0, gameOver);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
         roundInfoPanel.updateRoundType();
@@ -207,9 +209,6 @@ public class GameScreen implements Screen {
      */
     public void showGameOver(int quota, int chips, int spinsRemaining, int act, int round) {
         this.gameState = GameState.GAME_OVER;
-        inputMultiplexer.removeProcessor(cardInputHandler);
-        inputMultiplexer.removeProcessor(charmInputHandler);
-        inputMultiplexer.removeProcessor(shop);
         gameOver.show(quota, chips, spinsRemaining, act, round);
     }
 
@@ -230,9 +229,6 @@ public class GameScreen implements Screen {
         wheel.reset();
         gameOver.hide();
         enterRoundScreen();
-        inputMultiplexer.addProcessor(0, cardInputHandler);
-        inputMultiplexer.addProcessor(1, charmInputHandler);
-        inputMultiplexer.addProcessor(2, shop);
         this.gameState = GameState.ROUND;
     }
 
@@ -255,9 +251,6 @@ public class GameScreen implements Screen {
 
     public void enterRoundScreen() {
         gameState = GameState.ROUND;
-
-        inputMultiplexer.addProcessor(0, cardInputHandler);
-        inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
 
@@ -288,7 +281,9 @@ public class GameScreen implements Screen {
 
         // SpriteBatch renders
         updateBetButtonLayout();
-        betButton.update();
+        if (!gameOver.isVisible()) {
+            betButton.update();
+        }
         betButton.draw(spriteBatch);
 
         roundResult.update(delta);
@@ -342,6 +337,9 @@ public class GameScreen implements Screen {
      * @return The current state of the spin button.
      */
     private SpinButton.State getSpinButtonState() {
+        if (gameOver.isVisible()) {
+            return SpinButton.State.NO_BET;
+        }
         if (ball.getState() != Ball.State.STOPPED || wheel.isSpinning() || winAnimation.isActive()) {
             return SpinButton.State.SPINNING;
         }
@@ -549,6 +547,7 @@ public class GameScreen implements Screen {
 
     private boolean canBet() {
         return gameState != GameState.SHOP
+            && gameState != GameState.GAME_OVER
             && !wheel.isSpinning()
             && !winAnimation.isActive();
     }

@@ -1,6 +1,7 @@
 package io.wasabi.urg.ui;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
@@ -15,16 +16,25 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import io.wasabi.urg.Roulette;
+import io.wasabi.urg.elements.card.Card;
+import io.wasabi.urg.elements.charm.Charm;
+import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.FontManager;
+import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
 /**
  * Defeat screen that slides up over the game when the player fails to meet the quota.
  * Shows the quota, the chips and spins the player had left, how far they got, and lets
  * them either start a new run or return to the main menu.
+ *
+ * It also acts as a modal input layer: registered first in the game screen's input multiplexer,
+ * it swallows input events while visible so nothing underneath (cards, charms, tile tooltips,
+ * the shop) reacts to the mouse.
  */
-public class GameOver {
-    /** What the player chose on the defeat screen. */
+public class GameOver extends InputAdapter {
+    // what the player chose on the defeat screen.
     public enum Action {
         PLAY_AGAIN,
         MAIN_MENU
@@ -126,6 +136,24 @@ public class GameOver {
         redFade = 0f;
         panelTween = new Tween(1f, OFFSCREEN_Y, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
         fadeTween = new Tween(1f, 0f, RED_FILTER_MAX_ALPHA, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+
+        hideGameTooltips();
+    }
+
+    // Tooltips only hide on mouse move, which this layer now blocks, so clear any that are open.
+    private void hideGameTooltips() {
+        RunState runState = Roulette.getInstance().getRunState();
+        for (Tile tile : runState.getTiles()) {
+            if (tile != null) {
+                tile.getTooltip().hide();
+            }
+        }
+        for (Card card : runState.getOwnedCards()) {
+            card.getTooltip().hide();
+        }
+        for (Charm charm : runState.getOwnedCharms()) {
+            charm.getTooltip().hide();
+        }
     }
 
     public void hide() {
@@ -140,7 +168,7 @@ public class GameOver {
         fadeTween = new Tween(1f, redFade, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
-    /** Hides the panel immediately, for when the game screen is left while it is still up. */
+    // Hides the panel immediately, for when the game screen is left while it is still up.
     public void hideImmediately() {
         visible = false;
         hiding = false;
@@ -300,7 +328,7 @@ public class GameOver {
             box.width, Align.center, false);
     }
 
-    /** Draws a red filter over the entire screen to indicate a game over state. */
+    // Draws a red filter over the entire screen to indicate a game over state.
     private void drawRedFilter() {
         float pad = 200f;
         float worldWidth = viewport.getWorldWidth();
@@ -331,9 +359,47 @@ public class GameOver {
         return null;
     }
 
-    /** Buttons only respond once the panel has finished sliding in, so a stray click can't skip it. */
+    // Buttons only respond once the panel has finished sliding in, so a stray click can't skip it.
     private boolean isInteractive() {
         return visible && !hiding && panelTween != null && panelTween.isComplete();
+    }
+
+    // Input layer: consume events while visible so they never reach the game underneath.
+    // touchUp is let through so a card or charm being dragged when the run ended still gets dropped.
+
+    @Override
+    public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+        return visible;
+    }
+
+    @Override
+    public boolean touchDragged(int screenX, int screenY, int pointer) {
+        return visible;
+    }
+
+    @Override
+    public boolean mouseMoved(int screenX, int screenY) {
+        return visible;
+    }
+
+    @Override
+    public boolean scrolled(float amountX, float amountY) {
+        return visible;
+    }
+
+    @Override
+    public boolean keyDown(int keycode) {
+        return visible;
+    }
+
+    @Override
+    public boolean keyUp(int keycode) {
+        return visible;
+    }
+
+    @Override
+    public boolean keyTyped(char character) {
+        return visible;
     }
 
     public boolean isVisible() {
