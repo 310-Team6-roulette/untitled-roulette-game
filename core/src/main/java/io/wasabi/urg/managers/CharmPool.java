@@ -20,7 +20,8 @@ public class CharmPool {
         SledgehammerCharm::new,
         StrengthCharm::new,
         WeakeningCharm::new,
-        IcyCharm::new
+        IcyCharm::new,
+        OverstockCharm::new
     );
 
     private final Random random = new Random();
