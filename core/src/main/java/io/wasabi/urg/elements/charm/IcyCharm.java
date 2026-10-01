@@ -10,7 +10,6 @@ import io.wasabi.urg.ui.FloatingText;
 public class IcyCharm extends Charm {
 
     private static final float FRICTION_MULTIPLIER = 0.75f;
-    private static float CURRENT_FRICTION = 1f;
 
     public IcyCharm() {
         super();
@@ -23,9 +22,9 @@ public class IcyCharm extends Charm {
         if (requirements()) {
             super.consume();
 
-            CURRENT_FRICTION *= FRICTION_MULTIPLIER;
+            // Stacks on the ball's current friction so the effect resets along with the ball.
             Ball ball = Roulette.getInstance().getGameScreen().getBall();
-            ball.setFrictionMultiplier(CURRENT_FRICTION);
+            ball.setFrictionMultiplier(ball.getFrictionMultiplier() * FRICTION_MULTIPLIER);
 
             removeAndReturnToPool();
             SoundManager.getInstance().playSound("charmConsume");

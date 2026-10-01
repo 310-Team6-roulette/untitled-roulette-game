@@ -43,6 +43,8 @@ public class RoundManager {
         spinsRemaining = SPINS_PER_ROUND;
         gameOver = false;
         runComplete = false;
+        // Bosses are removed from the pool as they're fought, so refill it for the new run.
+        initializeBossPool();
     }
 
     private void initializeBossPool() {
@@ -179,7 +181,13 @@ public class RoundManager {
         game.getHighScoreManager().recordScore(act, round);
 
         if (game.getGameScreen() != null) {
-            game.getGameScreen().showGameOver();
+            game.getGameScreen().showGameOver(
+                currentConfig.getQuota(),
+                runState.getChips(),
+                spinsRemaining,
+                act,
+                round
+            );
         }
     }
 

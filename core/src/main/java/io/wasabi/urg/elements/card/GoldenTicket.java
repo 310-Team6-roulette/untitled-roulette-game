@@ -57,6 +57,12 @@ public class GoldenTicket extends Card {
         restoreTiles();
     }
 
+    @Override
+    public void removedEffect() {
+        restoreTiles();
+        activeRound = -1;
+    }
+
     private void restoreTiles() {
         for (Map.Entry<Tile, TileType> entry : enchantedTiles.entrySet()) {
             if (entry.getKey().getType() instanceof GoldTile) {

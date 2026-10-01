@@ -714,6 +714,12 @@ public class Ball extends GameObject {
         this.weightMultiplier = weightMultiplier;
     }
 
+    // Clears friction and weight changes from charms and cards so a new run starts with a default ball.
+    public void resetPhysicsModifiers() {
+        frictionMultiplier = 1f;
+        weightMultiplier = 1f;
+    }
+
     @Override
     public void render() {
         if (visible) {
