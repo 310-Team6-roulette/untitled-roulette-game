@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -222,9 +223,13 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
+        SPRITE_BATCH.setColor(type.getNumberColor());
+        FONT.setColor(type.getNumberColor());
         if (!(type instanceof NumberlessTile)) {
             FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
         }
+        FONT.setColor(Color.WHITE);
+        SPRITE_BATCH.setColor(Color.WHITE);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
 

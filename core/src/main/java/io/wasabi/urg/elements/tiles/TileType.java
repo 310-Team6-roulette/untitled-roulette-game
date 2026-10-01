@@ -91,6 +91,10 @@ public abstract class TileType implements Disposable {
 
     }
 
+    public Color getNumberColor() {
+        return Color.WHITE;
+    }
+
     protected  float[] textureWrapVertices(float[] vertices, TextureRegion texRegion) {
         final int regionVerticesLength = vertices.length;
         final int vertCount = regionVerticesLength / 2;

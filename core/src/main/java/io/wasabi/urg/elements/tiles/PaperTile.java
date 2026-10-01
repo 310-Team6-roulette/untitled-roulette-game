@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.tiles;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Mesh;
 import com.badlogic.gdx.graphics.Texture;
@@ -43,8 +44,19 @@ public class PaperTile extends TileType {
     }
 
     @Override
+    protected void updateTooltipTitle() {
+        tooltip.setTitle(String.format("[#%08X]%s [#000000FF]%d",
+            tileColourMap.get(colour), colour.toString().toUpperCase(), getNumber()));
+    }
+
+    @Override
     public void drawTextures() {
         // The paper texture supplies the complete tile appearance.
+    }
+
+    @Override
+    public Color getNumberColor() {
+        return Color.BLACK;
     }
 
     @Override
