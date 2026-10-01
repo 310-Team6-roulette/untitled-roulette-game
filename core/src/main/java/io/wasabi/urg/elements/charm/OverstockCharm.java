@@ -3,7 +3,6 @@ package io.wasabi.urg.elements.charm;
 import com.badlogic.gdx.graphics.Color;
 
 import io.wasabi.urg.Roulette;
-import io.wasabi.urg.elements.game.Ball;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.ui.FloatingText;
 
@@ -27,15 +26,9 @@ public class OverstockCharm extends Charm {
 
     @Override
     public boolean requirements() {
-        Ball ball = Roulette.getInstance().getGameScreen().getBall();
 
-        if (ball.getState() != Ball.State.STOPPED
-            || Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
-            Roulette.getInstance().getGameScreen().addParticle(
-                new FloatingText(
-                    "You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f
-                )
-            );
+        if (Roulette.getInstance().getGameScreen().getWheel().isSpinning()) {
+            Roulette.getInstance().getGameScreen().addParticle(new FloatingText("You cannot use charms while the wheel is spinning!", getX(), getY(), Color.RED, 1f));
             SoundManager.getInstance().playSound("error");
             return false;
         }
