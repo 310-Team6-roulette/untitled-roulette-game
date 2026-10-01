@@ -36,11 +36,6 @@ public class PaperTile extends TileType {
     }
 
     @Override
-    protected void updateTooltipTitle() {
-        tooltip.setTitle("PAPER");
-    }
-
-    @Override
     public void setRegion(float[] vertices, short[] indices) {
         super.setRegion(vertices, indices);
         mesh.setVertices(textureWrapVertices(vertices, new TextureRegion(PAPER_TEXTURE)));
