@@ -6,7 +6,7 @@ import io.wasabi.urg.state.RunState;
 /**
  * Staged result of one {@link RunState#resolveActiveBetsDetailed()} call, in
  * the exact order {@code WinAnimation} reveals them:
- * stake -> flat bonus -> tile multiplier -> global multiplier -> final total.
+ * stake -> flat bonus -> tile multiplier -> global multiplier -> post-multiplier bonus.
  *
  * {@code flatBonus} is the winning tile's flat bonus (see {@code Tile#getFlatBonus()}),
  * summed once per winning bet to mirror {@code winningStake}. It's for display only:
@@ -22,11 +22,12 @@ public final class WinBreakdown {
     private final float flatBonus;
     private final float tileMultiplier;
     private final float globalMultiplier;
+    private final float postMultiplierBonus;
     private final int finalTotal;
     private final Tile winningTile;
 
     public WinBreakdown(int totalStaked, int rawPayout, int winningStake, float payoutMultiplier, float flatBonus, float tileMultiplier,
-                        float globalMultiplier, int finalTotal, Tile winningTile) {
+                        float globalMultiplier, float postMultiplierBonus, int finalTotal, Tile winningTile) {
         this.totalStaked = totalStaked;
         this.rawPayout = rawPayout;
         this.winningStake = winningStake;
@@ -34,6 +35,7 @@ public final class WinBreakdown {
         this.flatBonus = flatBonus;
         this.tileMultiplier = tileMultiplier;
         this.globalMultiplier = globalMultiplier;
+        this.postMultiplierBonus = postMultiplierBonus;
         this.finalTotal = finalTotal;
         this.winningTile = winningTile;
     }
@@ -58,6 +60,10 @@ public final class WinBreakdown {
 
     public float getGlobalMultiplier() {
         return globalMultiplier;
+    }
+
+    public float getPostMultiplierBonus() {
+        return postMultiplierBonus;
     }
 
     public int getFinalTotal() {

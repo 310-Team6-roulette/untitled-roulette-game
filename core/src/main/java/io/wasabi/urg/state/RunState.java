@@ -374,7 +374,7 @@ public final class RunState {
     public WinBreakdown resolveActiveBetsDetailed() {
         if (lastTile == null) {
             activeBets.clear();
-            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, null);
+            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, 0, null);
         }
 
         int totalStaked = 0;
@@ -402,8 +402,9 @@ public final class RunState {
         }
 
         float tileMultiplier = lastTile.getBetMultiplier();
+        float postMultiplierBonus = winningStake > 0 ? lastTile.getPostMultiplierBonus() : 0f;
 
-        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier);
+        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier + postMultiplierBonus);
 
         float totalFlatBonus = tileFlatBonus + cardFlatBonus;
 
@@ -413,7 +414,7 @@ public final class RunState {
             : 1f;
 
         return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, totalFlatBonus, tileMultiplier, globalMultiplier,
-            finalTotal, lastTile);
+            postMultiplierBonus, finalTotal, lastTile);
     }
 
     /**
