@@ -48,7 +48,8 @@ public class GameScreen implements Screen {
         ROUND,
         RESULT,
         SHOP,
-        GAME_OVER
+        GAME_OVER,
+        VICTORY
     }
 
     private GameState gameState;
@@ -74,6 +75,7 @@ public class GameScreen implements Screen {
     private RoundResult roundResult;
     private Shop shop;
     private GameOver gameOver;
+    private Victory victory;
     private QuotaTracker quotaTracker;
     private RoundInfoPanel roundInfoPanel;
     private final WinAnimation winAnimation = new WinAnimation();
@@ -116,9 +118,11 @@ public class GameScreen implements Screen {
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
+        this.victory = new Victory(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(2, shop);
-        // First in line so the defeat screen blocks input to everything beneath it while it is up.
+        // First in line so modal screens block input to everything beneath them while up.
         this.inputMultiplexer.addProcessor(0, gameOver);
+        this.inputMultiplexer.addProcessor(0, victory);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
         roundInfoPanel.updateRoundType();
@@ -178,6 +182,24 @@ public class GameScreen implements Screen {
                 SoundManager.getInstance().playSound("tileSelect");
                 returnToMainMenu();
             }
+        } else if (gameState == GameState.VICTORY) {
+            Victory.Action action = victory.handleInput();
+            if (action == Victory.Action.ENDLESS_MODE) {
+                SoundManager.getInstance().playSound("tileSelect");
+                if (victory != null) {
+                    victory.hide();
+                }
+                game.getRoundManager().startEndless();
+                game.getRunState().reset(STARTING_CHIPS);
+                enterRoundScreen();
+                gameState = GameState.ROUND;
+            } else if (action == Victory.Action.PLAY_AGAIN) {
+                SoundManager.getInstance().playSound("tileSelect");
+                restartGame();
+            } else if (action == Victory.Action.MAIN_MENU) {
+                SoundManager.getInstance().playSound("tileSelect");
+                returnToMainMenu();
+            }
         }
     }
 
@@ -212,12 +234,23 @@ public class GameScreen implements Screen {
         gameOver.show(quota, chips, spinsRemaining, act, round);
     }
 
+    public void showVictory(int quota, long chips, int spinsRemaining, int act, int round) {
+        this.gameState = GameState.VICTORY;
+        if (victory != null) {
+            victory.show(quota, chips, spinsRemaining, act, round);
+        }
+        SoundManager.getInstance().playSound("winBet");
+    }
+
     /**
      * Resets the run so the game screen is fresh for the next PLAY, then goes back to the main menu.
      */
     public void returnToMainMenu() {
         restartGame();
         gameOver.hideImmediately();
+        if (victory != null) {
+            victory.hideImmediately();
+        }
         game.setScreen(game.getMainMenuScreen());
     }
 
@@ -228,6 +261,9 @@ public class GameScreen implements Screen {
         ball.resetPhysicsModifiers();
         wheel.reset();
         gameOver.hide();
+        if (victory != null) {
+            victory.hide();
+        }
         enterRoundScreen();
         this.gameState = GameState.ROUND;
     }
@@ -281,7 +317,7 @@ public class GameScreen implements Screen {
 
         // SpriteBatch renders
         updateBetButtonLayout();
-        if (!gameOver.isVisible()) {
+        if (!gameOver.isVisible() && (victory == null || !victory.isVisible())) {
             betButton.update();
         }
         betButton.draw(spriteBatch);
@@ -329,6 +365,10 @@ public class GameScreen implements Screen {
 
         gameOver.update(delta);
         gameOver.render();
+        if (victory != null) {
+            victory.update(delta);
+            victory.render();
+        }
     }
 
     /**
@@ -400,6 +440,9 @@ public class GameScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         updateBetButtonLayout();
+        if (victory != null) {
+            victory.resize(width, height);
+        }
     }
 
     @Override
@@ -577,8 +620,13 @@ public class GameScreen implements Screen {
         spriteBatch.dispose();
         ball.dispose();
         wheel.dispose();
-        betButtonTexture.dispose();
+        if (betButtonTexture != null) {
+            betButtonTexture.dispose();
+        }
         gameOver.dispose();
+        if (victory != null) {
+            victory.dispose();
+        }
         world.dispose();
     }
 

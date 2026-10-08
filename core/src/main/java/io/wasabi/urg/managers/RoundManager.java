@@ -156,6 +156,12 @@ public class RoundManager {
         runState.triggerEffects(EffectType.ROUND_END);
         runState.recordRoundBalance();
 
+        if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
+            runComplete = true;
+            completeRun();
+            return;
+        }
+
         // Reset tile multiplier for the next round
         if (round == ROUNDS_PER_ACT) {
             act++;
@@ -171,6 +177,31 @@ public class RoundManager {
             spinsRemaining*TICKETS_PER_UNUSED_SPIN,
             BASE_TICKET_REWARD + (spinsRemaining*TICKETS_PER_UNUSED_SPIN)
         );
+    }
+
+    private void completeRun() {
+        Roulette game = Roulette.getInstance();
+        game.getHighScoreManager().recordScore(act, round);
+        if (game.getGameScreen() != null) {
+            game.getGameScreen().showVictory(
+                    currentConfig.getQuota(),
+                    runState.getChips(),
+                    spinsRemaining,
+                    act,
+                    round
+            );
+        }
+    }
+
+    public void startEndless() {
+        act = TOTAL_ACTS + 1;
+        round = 1;
+        runComplete = false;
+        spinsRemaining = SPINS_PER_ROUND;
+    }
+
+    public void setRunComplete(boolean runComplete) {
+        this.runComplete = runComplete;
     }
 
     public void gameOver() {
