@@ -23,10 +23,6 @@ public class Victory extends ModalEndScreen<Victory.Action> {
         MAIN_MENU
     }
 
-    private static final float WIDTH = 720f;
-    private static final float HEIGHT = 620f;
-    private static final float OFFSCREEN_Y = -1500f;
-
     private static final Color ACCENT_GOLD = new Color(0.9f, 0.82f, 0.3f, 1f);
 
     // How dark the gold screen filter gets once it has fully faded in.
@@ -44,22 +40,7 @@ public class Victory extends ModalEndScreen<Victory.Action> {
     private final Rectangle mainMenuButton = new Rectangle();
 
     public Victory(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
-        super(shapeRenderer, spriteBatch, viewport);
-    }
-
-    @Override
-    protected float getWidth() {
-        return WIDTH;
-    }
-
-    @Override
-    protected float getHeight() {
-        return HEIGHT;
-    }
-
-    @Override
-    protected float getOffscreenY() {
-        return OFFSCREEN_Y;
+        super(shapeRenderer, spriteBatch, viewport, 720f, 620f);
     }
 
     @Override
@@ -103,11 +84,11 @@ public class Victory extends ModalEndScreen<Victory.Action> {
 
     @Override
     protected void layoutButtons(float bottom) {
-        float left = -WIDTH / 2f;
+        float left = -width / 2f;
         float buttonY = bottom + BUTTON_BOTTOM_PAD;
-        float centerLeft = left + (WIDTH - BUTTON_WIDTH) / 2f;
+        float centerLeft = left + (width - BUTTON_WIDTH) / 2f;
         endlessButton.set(centerLeft, buttonY + BUTTON_HEIGHT + BUTTON_GAP / 2f, BUTTON_WIDTH, BUTTON_HEIGHT);
-        float buttonsLeft = left + (WIDTH - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
+        float buttonsLeft = left + (width - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
         playAgainButton.set(buttonsLeft, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
         mainMenuButton.set(buttonsLeft + BUTTON_WIDTH + BUTTON_GAP, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
     }

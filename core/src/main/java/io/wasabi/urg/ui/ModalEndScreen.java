@@ -43,6 +43,7 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     protected static final float BUTTON_HEIGHT = 72f;
     protected static final float BUTTON_GAP = 40f;
     protected static final float BUTTON_BOTTOM_PAD = 40f;
+    protected static final float OFFSCREEN_Y = -1500f;
 
     protected static final Color PANEL_SHADOW = new Color(0f, 0f, 0f, 0.45f);
     protected static final Color PANEL_OUTLINE = Color.WHITE;
@@ -61,9 +62,11 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     protected final Matrix4 identity = new Matrix4();
     protected final Vector2 touch = new Vector2();
 
+    protected final float width;
+    protected final float height;
     protected Tween panelTween;
     protected Tween fadeTween;
-    protected float y = -1500f;
+    protected float y = OFFSCREEN_Y;
     protected float fadeAlpha = 0f;
     protected boolean visible;
     protected boolean hiding;
@@ -76,10 +79,13 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     protected int act;
     protected int round;
 
-    public ModalEndScreen(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
+    public ModalEndScreen(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport,
+        float width, float height) {
         this.shapeRenderer = shapeRenderer;
         this.spriteBatch = spriteBatch;
         this.viewport = viewport;
+        this.width = width;
+        this.height = height;
         this.patchTexture = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
         this.patch = new NinePatch(patchTexture, 10, 10, 10, 10);
         this.titleFont = FontManager.getInstance().getFontByName("Terminus64PXBold");
@@ -106,9 +112,9 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
         hiding = false;
         hovered = null;
         pressed = null;
-        y = getOffscreenY();
+        y = OFFSCREEN_Y;
         fadeAlpha = 0f;
-        panelTween = new Tween(1f, getOffscreenY(), 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+        panelTween = new Tween(1f, OFFSCREEN_Y, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
         fadeTween = new Tween(1f, 0f, getFilterMaxAlpha(), Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
 
         hideGameTooltips();
@@ -139,7 +145,7 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
         hiding = true;
         hovered = null;
         pressed = null;
-        panelTween = new Tween(1f, y, getOffscreenY(), Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
+        panelTween = new Tween(1f, y, OFFSCREEN_Y, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
         fadeTween = new Tween(1f, fadeAlpha, 0f, Tween.TweenStyle.QUAD, Tween.TweenDirection.IN);
     }
 
@@ -149,7 +155,7 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
         hiding = false;
         hovered = null;
         pressed = null;
-        y = getOffscreenY();
+        y = OFFSCREEN_Y;
         fadeAlpha = 0f;
     }
 
@@ -207,8 +213,8 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
 
         drawFilter();
 
-        float bottom = y - getHeight() / 2f;
-        float top = bottom + getHeight();
+        float bottom = y - height / 2f;
+        float top = bottom + height;
         layoutButtons(bottom);
 
         spriteBatch.begin();
@@ -226,28 +232,28 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     }
 
     protected void drawPanel(float bottom, float top) {
-        float left = -getWidth() / 2f;
+        float left = -width / 2f;
 
         spriteBatch.setColor(PANEL_SHADOW);
-        patch.draw(spriteBatch, left, bottom - 8f, getWidth(), getHeight());
+        patch.draw(spriteBatch, left, bottom - 8f, width, height);
 
         spriteBatch.setColor(PANEL_OUTLINE);
-        patch.draw(spriteBatch, left, bottom, getWidth(), getHeight());
+        patch.draw(spriteBatch, left, bottom, width, height);
 
         spriteBatch.setColor(PANEL_FILL);
         patch.draw(spriteBatch, left + OUTLINE, bottom + OUTLINE,
-            getWidth() - OUTLINE * 2f, getHeight() - OUTLINE * 2f);
+            width - OUTLINE * 2f, height - OUTLINE * 2f);
 
         // Accent divider between the header and the run stats.
         spriteBatch.setColor(getAccentColor());
-        patch.draw(spriteBatch, left + ROW_PADDING, top - 170f, getWidth() - ROW_PADDING * 2f, 4f);
+        patch.draw(spriteBatch, left + ROW_PADDING, top - 170f, width - ROW_PADDING * 2f, 4f);
     }
 
     protected void drawHeader(float top) {
-        float left = -getWidth() / 2f;
+        float left = -width / 2f;
         String title = getTitleText();
         layout.setText(titleFont, title);
-        float titleX = left + (getWidth() - layout.width) / 2f;
+        float titleX = left + (width - layout.width) / 2f;
 
         // Offset black copy underneath gives the title the same drop shadow as the main menu.
         titleFont.setColor(Color.BLACK);
@@ -256,12 +262,12 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
         titleFont.draw(spriteBatch, title, titleX, top - 30f);
 
         font.setColor(Color.WHITE);
-        font.draw(spriteBatch, getSubText(), left, top - 118f, getWidth(), Align.center, false);
+        font.draw(spriteBatch, getSubText(), left, top - 118f, width, Align.center, false);
     }
 
     protected void drawStatRow(String label, String value, Color valueColor, float rowY) {
-        float left = -getWidth() / 2f;
-        float rowWidth = getWidth() - ROW_PADDING * 2f;
+        float left = -width / 2f;
+        float rowWidth = width - ROW_PADDING * 2f;
 
         font.setColor(LABEL_GREY);
         font.draw(spriteBatch, label, left + ROW_PADDING, rowY, rowWidth, Align.left, false);
@@ -370,15 +376,6 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     public void dispose() {
         patchTexture.dispose();
     }
-
-    /** Panel width of this screen. */
-    protected abstract float getWidth();
-
-    /** Panel height of this screen. */
-    protected abstract float getHeight();
-
-    /** The y position the panel starts and ends at while off screen. */
-    protected abstract float getOffscreenY();
 
     /** Divider/title accent colour. */
     protected abstract Color getAccentColor();

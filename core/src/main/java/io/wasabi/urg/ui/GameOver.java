@@ -22,10 +22,6 @@ public class GameOver extends ModalEndScreen<GameOver.Action> {
         MAIN_MENU
     }
 
-    private static final float WIDTH = 720f;
-    private static final float HEIGHT = 560f;
-    private static final float OFFSCREEN_Y = -1500f;
-
     private static final Color ACCENT_RED = new Color(0.85f, 0.24f, 0.24f, 1f);
     private static final Color RED_FILTER = new Color(0.68f, 0.10f, 0.10f, 1f);
 
@@ -43,27 +39,12 @@ public class GameOver extends ModalEndScreen<GameOver.Action> {
     private DefeatReason reason = DefeatReason.OUT_OF_SPINS;
 
     public GameOver(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
-        super(shapeRenderer, spriteBatch, viewport);
+        super(shapeRenderer, spriteBatch, viewport, 720f, 560f);
     }
 
     @Override
     protected void onShow() {
         reason = DefeatReason.from((int) Math.min(chips, Integer.MAX_VALUE));
-    }
-
-    @Override
-    protected float getWidth() {
-        return WIDTH;
-    }
-
-    @Override
-    protected float getHeight() {
-        return HEIGHT;
-    }
-
-    @Override
-    protected float getOffscreenY() {
-        return OFFSCREEN_Y;
     }
 
     @Override
@@ -104,8 +85,8 @@ public class GameOver extends ModalEndScreen<GameOver.Action> {
 
     @Override
     protected void layoutButtons(float bottom) {
-        float left = -WIDTH / 2f;
-        float buttonsLeft = left + (WIDTH - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
+        float left = -width / 2f;
+        float buttonsLeft = left + (width - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
         float buttonY = bottom + BUTTON_BOTTOM_PAD;
         playAgainButton.set(buttonsLeft, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
         mainMenuButton.set(buttonsLeft + BUTTON_WIDTH + BUTTON_GAP, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
