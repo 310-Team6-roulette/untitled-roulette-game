@@ -7,73 +7,72 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
 /**
- * Defeat screen that slides up over the game when the player fails to meet the quota.
+ * Victory screen that slides up over the game when the player completes act 3.
  * Shows the quota, the chips and spins the player had left, how far they got, and lets
- * them either start a new run or return to the main menu.
+ * them either start a new run, return to the main menu, or go into endless mode.
  *
  * It also acts as a modal input layer via {@link ModalEndScreen}: registered first in the
  * game screen's input multiplexer, it swallows input events while visible so nothing
  * underneath (cards, charms, tile tooltips, the shop) reacts to the mouse.
  */
-public class GameOver extends ModalEndScreen<GameOver.Action> {
-    // what the player chose on the defeat screen.
+public class Victory extends ModalEndScreen<Victory.Action> {
+    // what the player chose on the victory screen.
     public enum Action {
+        ENDLESS_MODE,
         PLAY_AGAIN,
         MAIN_MENU
     }
 
-    private static final Color ACCENT_RED = new Color(0.85f, 0.24f, 0.24f, 1f);
-    private static final Color RED_FILTER = new Color(0.68f, 0.10f, 0.10f, 1f);
+    private static final Color ACCENT_GOLD = new Color(0.9f, 0.82f, 0.3f, 1f);
 
-    // How dark the red screen filter gets once it has fully faded in.
-    private static final float RED_FILTER_MAX_ALPHA = 0.25f;
+    // How dark the gold screen filter gets once it has fully faded in.
+    private static final float GOLD_FILTER_MAX_ALPHA = 0.12f;
 
+    private static final Color ENDLESS_COLOR = new Color(0.2f, 0.5f, 0.7f, 1f);
+    private static final Color ENDLESS_HOVER_COLOR = new Color(0.16f, 0.4f, 0.58f, 1f);
     private static final Color PLAY_AGAIN_COLOR = new Color(0.2f, 0.6f, 0.2f, 1f);
     private static final Color PLAY_AGAIN_HOVER_COLOR = new Color(0f, 0.4f, 0f, 1f);
     private static final Color MAIN_MENU_COLOR = new Color(0.25f, 0.25f, 0.32f, 1f);
     private static final Color MAIN_MENU_HOVER_COLOR = new Color(0.16f, 0.16f, 0.21f, 1f);
 
+    private final Rectangle endlessButton = new Rectangle();
     private final Rectangle playAgainButton = new Rectangle();
     private final Rectangle mainMenuButton = new Rectangle();
 
-    private DefeatReason reason = DefeatReason.OUT_OF_SPINS;
-
-    public GameOver(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
-        super(shapeRenderer, spriteBatch, viewport, 720f, 560f);
-    }
-
-    @Override
-    protected void onShow() {
-        reason = DefeatReason.from((int) Math.min(chips, Integer.MAX_VALUE));
+    public Victory(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport) {
+        super(shapeRenderer, spriteBatch, viewport, 720f, 620f);
     }
 
     @Override
     protected Color getAccentColor() {
-        return ACCENT_RED;
+        return ACCENT_GOLD;
     }
 
     @Override
     protected Color getFilterColor() {
-        return RED_FILTER;
+        return ACCENT_GOLD;
     }
 
     @Override
     protected float getFilterMaxAlpha() {
-        return RED_FILTER_MAX_ALPHA;
+        return GOLD_FILTER_MAX_ALPHA;
     }
 
     @Override
     protected String getTitleText() {
-        return "DEFEAT";
+        return "VICTORY";
     }
 
     @Override
     protected String getSubText() {
-        return reason.getMessage();
+        return "Run complete. Well played!";
     }
 
     @Override
     protected Action getActionAt(float worldX, float worldY) {
+        if (endlessButton.contains(worldX, worldY)) {
+            return Action.ENDLESS_MODE;
+        }
         if (playAgainButton.contains(worldX, worldY)) {
             return Action.PLAY_AGAIN;
         }
@@ -86,14 +85,17 @@ public class GameOver extends ModalEndScreen<GameOver.Action> {
     @Override
     protected void layoutButtons(float bottom) {
         float left = -width / 2f;
-        float buttonsLeft = left + (width - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
         float buttonY = bottom + BUTTON_BOTTOM_PAD;
+        float centerLeft = left + (width - BUTTON_WIDTH) / 2f;
+        endlessButton.set(centerLeft, buttonY + BUTTON_HEIGHT + BUTTON_GAP / 2f, BUTTON_WIDTH, BUTTON_HEIGHT);
+        float buttonsLeft = left + (width - (BUTTON_WIDTH * 2f + BUTTON_GAP)) / 2f;
         playAgainButton.set(buttonsLeft, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
         mainMenuButton.set(buttonsLeft + BUTTON_WIDTH + BUTTON_GAP, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT);
     }
 
     @Override
     protected void drawButtons() {
+        drawButton(endlessButton, "ENDLESS MODE", Action.ENDLESS_MODE, ENDLESS_COLOR, ENDLESS_HOVER_COLOR);
         drawButton(playAgainButton, "PLAY AGAIN", Action.PLAY_AGAIN, PLAY_AGAIN_COLOR, PLAY_AGAIN_HOVER_COLOR);
         drawButton(mainMenuButton, "MAIN MENU", Action.MAIN_MENU, MAIN_MENU_COLOR, MAIN_MENU_HOVER_COLOR);
     }
@@ -102,9 +104,8 @@ public class GameOver extends ModalEndScreen<GameOver.Action> {
     protected void drawStats(float top) {
         float rowY = top - ROW_START;
         drawStatRow("QUOTA", "$" + quota, VALUE_GOLD, rowY);
-        drawStatRow("CHIPS", "$" + chips, ACCENT_RED, rowY - ROW_GAP);
-        drawStatRow("SPINS LEFT", String.valueOf(spinsRemaining),
-            reason == DefeatReason.OUT_OF_SPINS ? ACCENT_RED : Color.WHITE, rowY - ROW_GAP * 2f);
+        drawStatRow("CHIPS", "$" + chips, VALUE_GOLD, rowY - ROW_GAP);
+        drawStatRow("SPINS LEFT", String.valueOf(spinsRemaining), Color.WHITE, rowY - ROW_GAP * 2f);
         drawStatRow("REACHED", "ACT " + act + ", ROUND " + round, Color.WHITE, rowY - ROW_GAP * 3f);
     }
 }

@@ -113,6 +113,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     private void handlePlayAction() {
         int startingChips = 100;
         game.getRunState().reset(startingChips);
+        game.getRoundManager().reset();
         game.setScreen(game.getGameScreen());
     }
 
