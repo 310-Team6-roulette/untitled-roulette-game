@@ -1,10 +1,10 @@
 package io.wasabi.urg.screens;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
@@ -32,17 +32,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     };
 
     private final MainMenuRenderer renderer;
-    private final MainMenuInputHandler inputHandler;
-    private final TutorialInputHandler tutorialInputHandler;
-    private final MainMenuButton tutorialBackButton = new MainMenuButton(
-        MainMenuButton.Action.BACK_TO_MENU,
-        "BACK TO MENU",
-        -542f,
-        -371f,
-        450f,
-        72f
-    );
-    private boolean tutorialOpen;
+    private final MenuButtonInputHandler inputHandler;
 
     /** Loads resources used throughout the menu; shared renderers are owned by RendererManager. */
     public MainMenuScreen(final Roulette game) {
@@ -63,23 +53,17 @@ public final class MainMenuScreen extends ScreenAdapter {
             FontManager.getInstance().getFontByName("Terminus32PX")
         );
 
-        this.inputHandler = new MainMenuInputHandler(game, menuButtons, this::handleMenuAction);
-        this.tutorialInputHandler = new TutorialInputHandler(
-            game.getCamera(),
-            tutorialBackButton,
-            this::handleMenuAction
-        );
+        this.inputHandler = new MenuButtonInputHandler(game.getCamera(), menuButtons, this::handleMenuAction);
     }
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(tutorialOpen ? tutorialInputHandler : inputHandler);
+        Gdx.input.setInputProcessor(inputHandler);
     }
 
     @Override
     public void hide() {
-        if (Gdx.input.getInputProcessor() == inputHandler
-            || Gdx.input.getInputProcessor() == tutorialInputHandler) {
+        if (Gdx.input.getInputProcessor() == inputHandler) {
             Gdx.input.setInputProcessor(null);
         }
     }
@@ -90,18 +74,14 @@ public final class MainMenuScreen extends ScreenAdapter {
         ScreenUtils.clear(0.17f, 0.20f, 0.12f, 1f);
 
         renderer.drawBackground(game.getWorldWidth(), game.getWorldHeight());
-        if (tutorialOpen) {
-            renderer.drawTutorialPage(tutorialBackButton, tutorialInputHandler.getBackButtonState());
-        } else {
-            renderer.drawTitle(CONTENT_CENTER_X, TITLE_SCALE);
-            renderer.drawMenuButtons(menuButtons, inputHandler);
-            renderer.drawHighScore(
-                WOOD_CENTER_X,
-                235f,
-                game.getHighScoreManager().getHighScoreAct(),
-                game.getHighScoreManager().getHighScoreRound()
-            );
-        }
+        renderer.drawTitle(CONTENT_CENTER_X, TITLE_SCALE);
+        renderer.drawMenuButtons(menuButtons, inputHandler);
+        renderer.drawHighScore(
+            WOOD_CENTER_X,
+            235f,
+            game.getHighScoreManager().getHighScoreAct(),
+            game.getHighScoreManager().getHighScoreRound()
+        );
     }
 
     /**
@@ -122,10 +102,6 @@ public final class MainMenuScreen extends ScreenAdapter {
             case COLLECTIONS:
                 handleCollectionsAction();
                 break;
-            case BACK_TO_MENU:
-                tutorialOpen = false;
-                Gdx.input.setInputProcessor(inputHandler);
-                break;
             case QUIT:
                 handleQuitAction();
                 break;
@@ -142,8 +118,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     }
 
     private void handleTutorialAction() {
-        tutorialOpen = true;
-        Gdx.input.setInputProcessor(tutorialInputHandler);
+        game.setScreen(game.getTutorialScreen());
     }
 
     private void handleSettingsAction() {

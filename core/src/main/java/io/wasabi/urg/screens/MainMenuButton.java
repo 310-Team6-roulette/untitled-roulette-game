@@ -17,13 +17,16 @@ public final class MainMenuButton {
         SETTINGS,
         COLLECTIONS,
         BACK_TO_MENU,
+        PREVIOUS_TUTORIAL_PAGE,
+        NEXT_TUTORIAL_PAGE,
         QUIT
     }
 
     public enum State {
         NORMAL,
         HOVER,
-        PRESSED
+        PRESSED,
+        DISABLED
     }
 
     private final Action action;
@@ -32,6 +35,7 @@ public final class MainMenuButton {
     private final float y;
     private final float width;
     private final float height;
+    private boolean enabled = true;
 
     public MainMenuButton(
         Action action,
@@ -71,5 +75,13 @@ public final class MainMenuButton {
 
     public float getHeight() {
         return height;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }
