@@ -7,15 +7,21 @@ import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 
+import java.util.EnumMap;
+import java.util.Map;
+
 import io.wasabi.urg.Roulette;
 import io.wasabi.urg.managers.FontManager;
 import io.wasabi.urg.managers.RendererManager;
 
 /** Owns tutorial navigation, input, and rendering separately from the main menu. */
 public final class TutorialScreen extends ScreenAdapter {
+    private static final String STANDARD_FONT_NAME = "Terminus32PX";
+
     private final Roulette game;
     private final Texture backgroundTexture;
     private final Texture patchTexture;
+    private final Map<TutorialPage, Texture> screenshots = new EnumMap<>(TutorialPage.class);
     private final TutorialRenderer renderer;
     private final TutorialPageNavigator pageNavigator = new TutorialPageNavigator();
 
@@ -50,13 +56,24 @@ public final class TutorialScreen extends ScreenAdapter {
         SpriteBatch spriteBatch = RendererManager.getInstance().getSpriteBatch();
         backgroundTexture = new Texture(Gdx.files.internal("ui/MainMenu.png"));
         patchTexture = new Texture(Gdx.files.internal("ui/CorneredPatch.png"));
+        for (TutorialPage page : TutorialPage.values()) {
+            if (page.hasScreenshot()) {
+                screenshots.put(page, new Texture(Gdx.files.internal(page.getScreenshotPath())));
+            }
+        }
         NinePatch patch = new NinePatch(patchTexture, 10, 10, 10, 10);
+        FontManager fontManager = FontManager.getInstance();
         renderer = new TutorialRenderer(
             spriteBatch,
             backgroundTexture,
+            screenshots,
             patch,
-            FontManager.getInstance().getFontByName("Terminus64PXBold"),
-            FontManager.getInstance().getFontByName("Terminus32PX")
+            new TutorialRenderer.Fonts(
+                fontManager.getFontByName("Terminus64PXBold"),
+                fontManager.getFontByName(STANDARD_FONT_NAME),
+                fontManager.getFontByName(STANDARD_FONT_NAME),
+                fontManager.getFontByName(STANDARD_FONT_NAME)
+            )
         );
         inputHandler = new TutorialInputHandler(
             game.getCamera(),
@@ -86,14 +103,11 @@ public final class TutorialScreen extends ScreenAdapter {
         renderer.drawPage(
             pageNavigator.getCurrentPage(),
             pageNavigator.getCurrentPageNumber(),
-            pageNavigator.getPageCount(),
-            backButton,
-            inputHandler.getBackButtonState(),
-            previousButton,
-            inputHandler.getPreviousButtonState(),
-            nextButton,
-            inputHandler.getNextButtonState()
+            pageNavigator.getPageCount()
         );
+        renderer.drawButton(backButton, inputHandler.getBackButtonState());
+        renderer.drawButton(previousButton, inputHandler.getPreviousButtonState());
+        renderer.drawButton(nextButton, inputHandler.getNextButtonState());
     }
 
     private void handleButtonAction(MainMenuButton.Action action) {
@@ -125,5 +139,8 @@ public final class TutorialScreen extends ScreenAdapter {
     public void dispose() {
         backgroundTexture.dispose();
         patchTexture.dispose();
+        for (Texture screenshot : screenshots.values()) {
+            screenshot.dispose();
+        }
     }
 }

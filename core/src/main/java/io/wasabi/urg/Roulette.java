@@ -82,6 +82,7 @@ public class Roulette extends Game {
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
         this.mainMenuScreen = new MainMenuScreen(this);
+        // Keep tutorial navigation and input isolated from the main-menu screen.
         this.tutorialScreen = new TutorialScreen(this);
 
         this.setScreen(this.mainMenuScreen);

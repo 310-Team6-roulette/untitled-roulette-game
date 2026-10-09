@@ -1,9 +1,8 @@
 package io.wasabi.urg.screens;
 
 /**
- * Represents one menu entry and the specific action it should trigger when activated.
- * Keeping the action separate from the visible label avoids fragile comparisons against
- * literal UI text such as "PLAY".
+ * Represents a screen button with its geometry, state, display label, and activation action.
+ * Keeping the action separate from the visible label avoids fragile comparisons against UI text.
  */
 public final class MainMenuButton {
     @FunctionalInterface

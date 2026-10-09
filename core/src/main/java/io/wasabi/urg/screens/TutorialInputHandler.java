@@ -3,7 +3,10 @@ package io.wasabi.urg.screens;
 import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
-/** Captures input while the tutorial is open and allows the player to return to the menu. */
+/**
+ * Keeps pointer input within the tutorial overlay and delegates button interaction to the
+ * shared menu-button handler.
+ */
 public final class TutorialInputHandler extends InputAdapter {
     private static final int BACK_BUTTON_INDEX = 0;
     private static final int PREVIOUS_BUTTON_INDEX = 1;
