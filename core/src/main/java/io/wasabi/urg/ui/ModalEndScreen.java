@@ -79,7 +79,7 @@ public abstract class ModalEndScreen<T extends Enum<T>> extends InputAdapter {
     protected int act;
     protected int round;
 
-    public ModalEndScreen(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport,
+    protected ModalEndScreen(ShapeRenderer shapeRenderer, SpriteBatch spriteBatch, Viewport viewport,
         float width, float height) {
         this.shapeRenderer = shapeRenderer;
         this.spriteBatch = spriteBatch;

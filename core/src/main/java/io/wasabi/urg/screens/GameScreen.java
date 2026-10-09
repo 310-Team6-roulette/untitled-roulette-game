@@ -161,46 +161,72 @@ public class GameScreen implements Screen {
      * Handles input for the game screen, including UI interactions and game state transitions.
      */
     private void handleUIInput() {
-
-        if (gameState == GameState.RESULT) {
-            if (roundResult.handleInput()) {
-                Roulette.getInstance().getRoundManager().awardTickets();
-                SoundManager.getInstance().playSound("tileSelect");
-                enterShopScreen();
-            }
-        } else if (gameState == GameState.SHOP) {
-            if (shop.handleInput()) {
-                SoundManager.getInstance().playSound("tileSelect");
-                enterRoundScreen();
-            }
-        } else if (gameState == GameState.GAME_OVER) {
-            GameOver.Action action = gameOver.handleInput();
-            if (action == GameOver.Action.PLAY_AGAIN) {
-                SoundManager.getInstance().playSound("tileSelect");
-                restartGame();
-            } else if (action == GameOver.Action.MAIN_MENU) {
-                SoundManager.getInstance().playSound("tileSelect");
-                returnToMainMenu();
-            }
-        } else if (gameState == GameState.VICTORY) {
-            Victory.Action action = victory.handleInput();
-            if (action == Victory.Action.ENDLESS_MODE) {
-                SoundManager.getInstance().playSound("tileSelect");
-                if (victory != null) {
-                    victory.hide();
-                }
-                game.getRoundManager().startEndless();
-                game.getRunState().reset(STARTING_CHIPS);
-                enterRoundScreen();
-                gameState = GameState.ROUND;
-            } else if (action == Victory.Action.PLAY_AGAIN) {
-                SoundManager.getInstance().playSound("tileSelect");
-                restartGame();
-            } else if (action == Victory.Action.MAIN_MENU) {
-                SoundManager.getInstance().playSound("tileSelect");
-                returnToMainMenu();
-            }
+        switch (gameState) {
+            case RESULT:
+                handleResultInput();
+                break;
+            case SHOP:
+                handleShopInput();
+                break;
+            case GAME_OVER:
+                handleGameOverInput();
+                break;
+            case VICTORY:
+                handleVictoryInput();
+                break;
+            default:
+                break;
         }
+    }
+
+    private void handleResultInput() {
+        if (roundResult.handleInput()) {
+            Roulette.getInstance().getRoundManager().awardTickets();
+            playTileSelectSound();
+            enterShopScreen();
+        }
+    }
+
+    private void handleShopInput() {
+        if (shop.handleInput()) {
+            playTileSelectSound();
+            enterRoundScreen();
+        }
+    }
+
+    private void handleGameOverInput() {
+        GameOver.Action action = gameOver.handleInput();
+        if (action == GameOver.Action.PLAY_AGAIN) {
+            playTileSelectSound();
+            restartGame();
+        } else if (action == GameOver.Action.MAIN_MENU) {
+            playTileSelectSound();
+            returnToMainMenu();
+        }
+    }
+
+    private void handleVictoryInput() {
+        Victory.Action action = victory.handleInput();
+        if (action == Victory.Action.ENDLESS_MODE) {
+            playTileSelectSound();
+            if (victory != null) {
+                victory.hide();
+            }
+            game.getRoundManager().startEndless();
+            game.getRunState().reset(STARTING_CHIPS);
+            enterRoundScreen();
+            gameState = GameState.ROUND;
+        } else if (action == Victory.Action.PLAY_AGAIN) {
+            playTileSelectSound();
+            restartGame();
+        } else if (action == Victory.Action.MAIN_MENU) {
+            playTileSelectSound();
+            returnToMainMenu();
+        }
+    }
+
+    private void playTileSelectSound() {
+        SoundManager.getInstance().playSound("tileSelect");
     }
 
     /**
