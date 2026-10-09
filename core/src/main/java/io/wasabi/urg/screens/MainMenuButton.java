@@ -16,6 +16,7 @@ public final class MainMenuButton {
         TUTORIAL,
         SETTINGS,
         COLLECTIONS,
+        BACK_TO_MENU,
         QUIT
     }
 

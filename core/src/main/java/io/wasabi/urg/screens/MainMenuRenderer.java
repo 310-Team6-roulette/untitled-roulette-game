@@ -18,6 +18,8 @@ public final class MainMenuRenderer {
     private static final Color PANEL_FILL = new Color(0.10f, 0.10f, 0.13f, 1f);
     private static final Color BUTTON_HOVER_FILL = new Color(0.16f, 0.16f, 0.20f, 1f);
     private static final Color BUTTON_PRESSED_FILL = new Color(0.08f, 0.08f, 0.11f, 1f);
+    private static final Color MODAL_BACKDROP = new Color(0f, 0f, 0f, 0.55f);
+    private static final Color SCREENSHOT_FILL = new Color(0.07f, 0.07f, 0.09f, 1f);
 
     private final SpriteBatch spriteBatch;
     private final Texture backgroundTexture;
@@ -92,6 +94,101 @@ public final class MainMenuRenderer {
                 inputHandler.getButtonState(i)
             );
         }
+    }
+
+    /** Draws the initial tutorial page over the menu background. */
+    public void drawTutorialPage(
+        MainMenuButton backButton,
+        MainMenuButton.State backButtonState
+    ) {
+        float panelWidth = 1180f;
+        float panelHeight = 790f;
+        float panelX = -panelWidth / 2f;
+        float panelY = -panelHeight / 2f;
+
+        float screenshotX = 35f;
+        float screenshotY = -90f;
+        float screenshotWidth = 500f;
+        float screenshotHeight = 350f;
+
+        spriteBatch.begin();
+        spriteBatch.setColor(MODAL_BACKDROP);
+        spriteBatch.draw(
+            backgroundTexture,
+            -800f,
+            -450f,
+            1600f,
+            900f
+        );
+        spriteBatch.setColor(Color.WHITE);
+        spriteBatch.end();
+
+        spriteBatch.begin();
+        spriteBatch.setColor(PANEL_SHADOW);
+        patch.draw(spriteBatch, panelX, panelY - 8f, panelWidth, panelHeight);
+        spriteBatch.setColor(PANEL_OUTLINE);
+        patch.draw(spriteBatch, panelX, panelY, panelWidth, panelHeight);
+        spriteBatch.setColor(PANEL_FILL);
+        patch.draw(spriteBatch, panelX + 6f, panelY + 6f, panelWidth - 12f, panelHeight - 12f);
+
+        spriteBatch.setColor(PANEL_OUTLINE);
+        patch.draw(spriteBatch, screenshotX, screenshotY, screenshotWidth, screenshotHeight);
+        spriteBatch.setColor(SCREENSHOT_FILL);
+        patch.draw(
+            spriteBatch,
+            screenshotX + 5f,
+            screenshotY + 5f,
+            screenshotWidth - 10f,
+            screenshotHeight - 10f
+        );
+
+        spriteBatch.setColor(Color.WHITE);
+        titleFont.setColor(Color.WHITE);
+        titleFont.draw(spriteBatch, "HOW TO PLAY", panelX + 48f, panelY + panelHeight - 50f);
+        buttonFont.setColor(Color.WHITE);
+        buttonFont.draw(spriteBatch, "1. THE GOAL", panelX + 52f, 270f);
+        buttonFont.draw(
+            spriteBatch,
+            "Reach the round quota before you run out of spins.\n"
+                + "Place bets on the table, then spin the wheel.\n"
+                + "Winning rounds earn tickets for the shop.",
+            panelX + 52f,
+            205f,
+            490f,
+            Align.topLeft,
+            true
+        );
+
+        layout.setText(buttonFont, "GAMEPLAY SCREENSHOT");
+        buttonFont.draw(
+            spriteBatch,
+            "GAMEPLAY SCREENSHOT",
+            screenshotX,
+            screenshotY + screenshotHeight / 2f + layout.height / 2f,
+            screenshotWidth,
+            Align.center,
+            false
+        );
+        buttonFont.draw(
+            spriteBatch,
+            "1 / 5",
+            -80f,
+            panelY + 60f,
+            160f,
+            Align.center,
+            false
+        );
+        spriteBatch.setColor(Color.WHITE);
+        spriteBatch.end();
+
+        drawButton(
+            backButton.getX(),
+            backButton.getY(),
+            backButton.getWidth(),
+            backButton.getHeight(),
+            backButton.getLabel(),
+            backButtonState
+        );
     }
 
     private void drawButton(
