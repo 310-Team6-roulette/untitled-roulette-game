@@ -7,11 +7,15 @@ package io.wasabi.urg.screens;
 public enum TutorialPage {
     GOAL(
         "THE GOAL",
-        "At the start of each round, you have [#FFD700]100 chips[] and [#FFD700]five spins[].\n\n"
+        "At the start of each round, you have " + TextStyle.GOLD + "100 chips[] and "
+            + TextStyle.GOLD + "five spins[].\n\n"
+            + TextStyle.GOLD + "Cards[] give passive effects. " + TextStyle.GOLD
+            + "Charms[] are consumables: drag one to the wheel to use it; some require selecting pockets.\n\n"
             + "Reach the quota shown on screen before you run out of spins.\n\n"
             + "After each spin, winning bets pay out and losing stakes are deducted.\n\n"
             + "Meet the quota to clear the round. If your chips hit 0 or your spins run out first, the run ends.\n\n"
-            + "[#FFD700]Tickets[] buy [#FFD700]cards[] and [#FFD700]charms[] in the shop; their effects help shape your strategy.",
+            + TextStyle.GOLD + "Tickets[] buy " + TextStyle.GOLD + "cards[] and "
+            + TextStyle.GOLD + "charms[] in the shop to shape your strategy.",
         null
     ),
     CHIPS(
@@ -20,26 +24,32 @@ public enum TutorialPage {
             + "Chip values are percentages of your current chips: 1%, 5%, 10%, 25%, 50%, or 100%.\n\n"
             + "Place more than one bet if their combined stakes do not exceed your balance.\n\n"
             + "To change a bet, drag its chip to another area; drop it away from the table to remove it.\n\n"
-            + "New to roulette? Look up a table guide for more bet placement details.",
+            + TextStyle.GOLD + "New to roulette?[] Look up a table guide for more bet placement details.",
         ScreenshotAssets.BETTING_TABLE
     ),
     BET_TYPES(
         "BET TYPES AND PAYOUTS",
         "The number or group you cover must be the winning pocket for your bet to win.\n\n"
-            + "[#FFD700]Straight[]: one number, 36x total return.\n\n"
-            + "[#FFD700]Split[]: two neighboring numbers that share an edge, 18x.\n\n"
-            + "[#FFD700]Street[]: a group of three neighboring numbers, 12x.\n\n"
-            + "[#FFD700]Corner[]: four touching numbers, 9x.\n\n"
-            + "[#FFD700]Six-line[]: two rows of three, 6x.\n\n"
-            + "[#FFD700]Column[] or [#FFD700]dozen[]: a table column or one of the three table sections, 3x.\n\n"
-            + "[#FFD700]Red[], [#FFD700]black[], [#FFD700]odd[], [#FFD700]even[], [#FFD700]low[], or [#FFD700]high[]: 2x.\n\n"
+            + TextStyle.GOLD + "Straight[]: one number, " + TextStyle.MULTIPLIER + "36x[] total return.\n\n"
+            + TextStyle.GOLD + "Split[]: two neighboring numbers that share an edge, "
+            + TextStyle.MULTIPLIER + "18x[].\n\n"
+            + TextStyle.GOLD + "Street[]: a group of three neighboring numbers, "
+            + TextStyle.MULTIPLIER + "12x[].\n\n"
+            + TextStyle.GOLD + "Corner[]: four touching numbers, " + TextStyle.MULTIPLIER + "9x[].\n\n"
+            + TextStyle.GOLD + "Six-line[]: two rows of three, " + TextStyle.MULTIPLIER + "6x[].\n\n"
+            + TextStyle.GOLD + "Column[] or " + TextStyle.GOLD
+            + "dozen[]: a table column or one of the three table sections, "
+            + TextStyle.MULTIPLIER + "3x[].\n\n"
+            + TextStyle.GOLD + "Red[], " + TextStyle.GOLD + "black[], " + TextStyle.GOLD
+            + "odd[], " + TextStyle.GOLD + "even[], " + TextStyle.GOLD + "low[], or "
+            + TextStyle.GOLD + "high[]: " + TextStyle.MULTIPLIER + "2x[].\n\n"
             + "Multipliers show the total returned, including your stake: a winning 1-chip straight bet returns 36 chips.",
         null
     ),
     SPINNING(
         "SPIN AND COLLECT",
         "After placing your bets, return to the wheel screen.\n\n"
-            + "Click [#FFD700]SPIN[] in the centre of the wheel. You need at least one bet to spin.\n\n"
+            + "Click " + TextStyle.GOLD + "SPIN[] in the centre of the wheel. You need at least one bet to spin.\n\n"
             + "When the ball lands, bets covering that pocket win; all other stakes are lost.\n\n"
             + "The quota tracks your chips after the result. Keep betting and spinning until you reach it.",
         ScreenshotAssets.WHEEL
@@ -48,8 +58,9 @@ public enum TutorialPage {
         "ROUND REWARDS AND THE SHOP",
         "Clearing a round earns four base tickets plus one ticket for each unused spin.\n\n"
             + "In the shop, spend tickets on cards and charms that change your run.\n\n"
-            + "Drag an offer to [#32CD32]BUY[] to purchase it, or drag an owned item to [#FF5555]SELL[] to remove it.\n\n"
-            + "Select [#FFD700]CONTINUE[] when you are ready for the next round.",
+            + "Drag an offer to " + TextStyle.BUY + "BUY[] to purchase it, or drag an owned item to "
+            + TextStyle.SELL + "SELL[] to remove it.\n\n"
+            + "Select " + TextStyle.GOLD + "CONTINUE[] when you are ready for the next round.",
         ScreenshotAssets.SHOP
     ),
     PROGRESSION(
@@ -68,6 +79,16 @@ public enum TutorialPage {
         private static final String BOSS = "ui/TutorialBoss.png";
 
         private ScreenshotAssets() {
+        }
+    }
+
+    private static final class TextStyle {
+        private static final String GOLD = "[#FFD700]";
+        private static final String MULTIPLIER = "[#55DDEE]";
+        private static final String BUY = "[#32CD32]";
+        private static final String SELL = "[#FF5555]";
+
+        private TextStyle() {
         }
     }
 
