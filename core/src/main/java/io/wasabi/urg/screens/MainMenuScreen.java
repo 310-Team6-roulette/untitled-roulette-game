@@ -1,10 +1,10 @@
 package io.wasabi.urg.screens;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.ScreenAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.NinePatch;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 import io.wasabi.urg.Roulette;
@@ -32,7 +32,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     };
 
     private final MainMenuRenderer renderer;
-    private final MainMenuInputHandler inputHandler;
+    private final MenuButtonInputHandler inputHandler;
 
     /** Loads resources used throughout the menu; shared renderers are owned by RendererManager. */
     public MainMenuScreen(final Roulette game) {
@@ -53,7 +53,7 @@ public final class MainMenuScreen extends ScreenAdapter {
             FontManager.getInstance().getFontByName("Terminus32PX")
         );
 
-        this.inputHandler = new MainMenuInputHandler(game, menuButtons, this::handleMenuAction);
+        this.inputHandler = new MenuButtonInputHandler(game.getCamera(), menuButtons, this::handleMenuAction);
     }
 
     @Override
@@ -118,7 +118,7 @@ public final class MainMenuScreen extends ScreenAdapter {
     }
 
     private void handleTutorialAction() {
-        // Placeholder until the tutorial screen is implemented.
+        game.setScreen(game.getTutorialScreen());
     }
 
     private void handleSettingsAction() {

@@ -16,6 +16,7 @@ import io.wasabi.urg.managers.TextureManager;
 import io.wasabi.urg.screens.BettingScreen;
 import io.wasabi.urg.screens.GameScreen;
 import io.wasabi.urg.screens.MainMenuScreen;
+import io.wasabi.urg.screens.TutorialScreen;
 import io.wasabi.urg.state.RunState;
 
 public class Roulette extends Game {
@@ -24,6 +25,7 @@ public class Roulette extends Game {
     private GameScreen gameScreen;
     private BettingScreen bettingScreen;
     private MainMenuScreen mainMenuScreen;
+    private TutorialScreen tutorialScreen;
 
     private final RunState runState = new RunState();
     private static final float MIN_WORLD_WIDTH = 1600f; // Minimum width of the game world
@@ -80,6 +82,8 @@ public class Roulette extends Game {
         this.gameScreen = new GameScreen(this);
         this.bettingScreen = new BettingScreen(this);
         this.mainMenuScreen = new MainMenuScreen(this);
+        // Keep tutorial navigation and input isolated from the main-menu screen.
+        this.tutorialScreen = new TutorialScreen(this);
 
         this.setScreen(this.mainMenuScreen);
     }
@@ -103,6 +107,9 @@ public class Roulette extends Game {
         }
         if (getMainMenuScreen() != null) {
             getMainMenuScreen().dispose();
+        }
+        if (getTutorialScreen() != null) {
+            getTutorialScreen().dispose();
         }
 
         soundManager.dispose();
@@ -135,6 +142,10 @@ public class Roulette extends Game {
 
     public MainMenuScreen getMainMenuScreen() {
         return mainMenuScreen;
+    }
+
+    public TutorialScreen getTutorialScreen() {
+        return tutorialScreen;
     }
 
     public RoundManager getRoundManager() {

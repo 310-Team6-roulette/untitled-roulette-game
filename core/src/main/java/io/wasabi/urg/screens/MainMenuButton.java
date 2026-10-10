@@ -1,9 +1,8 @@
 package io.wasabi.urg.screens;
 
 /**
- * Represents one menu entry and the specific action it should trigger when activated.
- * Keeping the action separate from the visible label avoids fragile comparisons against
- * literal UI text such as "PLAY".
+ * Represents a screen button with its geometry, state, display label, and activation action.
+ * Keeping the action separate from the visible label avoids fragile comparisons against UI text.
  */
 public final class MainMenuButton {
     @FunctionalInterface
@@ -16,13 +15,17 @@ public final class MainMenuButton {
         TUTORIAL,
         SETTINGS,
         COLLECTIONS,
+        BACK_TO_MENU,
+        PREVIOUS_TUTORIAL_PAGE,
+        NEXT_TUTORIAL_PAGE,
         QUIT
     }
 
     public enum State {
         NORMAL,
         HOVER,
-        PRESSED
+        PRESSED,
+        DISABLED
     }
 
     private final Action action;
@@ -31,6 +34,7 @@ public final class MainMenuButton {
     private final float y;
     private final float width;
     private final float height;
+    private boolean enabled = true;
 
     public MainMenuButton(
         Action action,
@@ -70,5 +74,13 @@ public final class MainMenuButton {
 
     public float getHeight() {
         return height;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
     }
 }

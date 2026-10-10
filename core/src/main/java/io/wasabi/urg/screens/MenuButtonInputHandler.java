@@ -4,29 +4,18 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Vector3;
 
-import io.wasabi.urg.Roulette;
-
 /**
- * Handles only the menu interaction concerns: hit detection, hover states and
- * activation. Keeping this separate from the screen makes the menu easier to reason
- * about and simpler to extend with additional buttons later.
+ * Handles hit detection, hover states, and activation for menu-style buttons.
+ * Screens provide the buttons and decide what each action does.
  */
-public final class MainMenuInputHandler extends InputAdapter {
+public final class MenuButtonInputHandler extends InputAdapter {
     private final OrthographicCamera camera;
     private final MainMenuButton[] buttons;
     private final MainMenuButton.ActionHandler actionHandler;
     private int hoveredIndex = -1;
     private int pressedIndex = -1;
 
-    public MainMenuInputHandler(
-        Roulette game,
-        MainMenuButton[] buttons,
-        MainMenuButton.ActionHandler actionHandler
-    ) {
-        this(game.getCamera(), buttons, actionHandler);
-    }
-
-    public MainMenuInputHandler(
+    public MenuButtonInputHandler(
         OrthographicCamera camera,
         MainMenuButton[] buttons,
         MainMenuButton.ActionHandler actionHandler
@@ -83,6 +72,9 @@ public final class MainMenuInputHandler extends InputAdapter {
     }
 
     public MainMenuButton.State getButtonState(int index) {
+        if (!buttons[index].isEnabled()) {
+            return MainMenuButton.State.DISABLED;
+        }
         if (pressedIndex == index) {
             return MainMenuButton.State.PRESSED;
         }
@@ -93,16 +85,18 @@ public final class MainMenuInputHandler extends InputAdapter {
     }
 
     /**
-     * Converts screen coordinates to the fixed 1600x900 world space used by the menu.
-     * This keeps button hitboxes aligned with the background art even when the window is
-     * resized and the viewport changes.
+     * Converts screen coordinates into the shared world space so button hitboxes remain
+     * aligned when the viewport or window size changes.
      */
     private int findButtonAtScreenCoordinates(int screenX, int screenY) {
-        Vector3 world = new Vector3(screenX, screenY, 0f);
+        Vector3 world = new Vector3((float) screenX, (float) screenY, 0f);
         camera.unproject(world);
 
         for (int i = 0; i < buttons.length; i++) {
             MainMenuButton button = buttons[i];
+            if (!button.isEnabled()) {
+                continue;
+            }
             boolean isInside =
                 world.x >= button.getX() && world.x <= button.getX() + button.getWidth()
                     && world.y >= button.getY() && world.y <= button.getY() + button.getHeight();
