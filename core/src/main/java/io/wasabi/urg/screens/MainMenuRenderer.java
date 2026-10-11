@@ -16,14 +16,12 @@ public final class MainMenuRenderer {
     private static final Color PANEL_SHADOW = new Color(0f, 0f, 0f, 0.45f);
     private static final Color PANEL_OUTLINE = Color.WHITE;
     private static final Color PANEL_FILL = new Color(0.10f, 0.10f, 0.13f, 1f);
-    private static final Color BUTTON_HOVER_FILL = new Color(0.16f, 0.16f, 0.20f, 1f);
-    private static final Color BUTTON_PRESSED_FILL = new Color(0.08f, 0.08f, 0.11f, 1f);
-
     private final SpriteBatch spriteBatch;
     private final Texture backgroundTexture;
     private final NinePatch patch;
     private final BitmapFont titleFont;
     private final BitmapFont buttonFont;
+    private final MenuButtonRenderer buttonRenderer;
     private final GlyphLayout layout = new GlyphLayout();
     private final GlyphLayout scoreHeadingLayout = new GlyphLayout();
     private final GlyphLayout scoreValueLayout = new GlyphLayout();
@@ -40,6 +38,7 @@ public final class MainMenuRenderer {
         this.patch = patch;
         this.titleFont = titleFont;
         this.buttonFont = buttonFont;
+        this.buttonRenderer = new MenuButtonRenderer(spriteBatch, patch, buttonFont);
     }
 
     public void drawBackground(float worldWidth, float worldHeight) {
@@ -80,66 +79,10 @@ public final class MainMenuRenderer {
         titleFont.getData().setScale(1f);
     }
 
-    public void drawMenuButtons(MainMenuButton[] buttons, MainMenuInputHandler inputHandler) {
+    public void drawMenuButtons(MainMenuButton[] buttons, MenuButtonInputHandler inputHandler) {
         for (int i = 0; i < buttons.length; i++) {
-            MainMenuButton button = buttons[i];
-            drawButton(
-                button.getX(),
-                button.getY(),
-                button.getWidth(),
-                button.getHeight(),
-                button.getLabel(),
-                inputHandler.getButtonState(i)
-            );
+            buttonRenderer.draw(buttons[i], inputHandler.getButtonState(i));
         }
-    }
-
-    private void drawButton(
-        float x,
-        float y,
-        float width,
-        float height,
-        String label,
-        MainMenuButton.State state
-    ) {
-        layout.setText(buttonFont, label);
-        float shadowOffset = state == MainMenuButton.State.PRESSED ? 4f : 6f;
-        float pressOffsetY = state == MainMenuButton.State.PRESSED ? -4f : 0f;
-
-        spriteBatch.begin();
-
-        spriteBatch.setColor(PANEL_SHADOW);
-        patch.draw(spriteBatch, x, y - shadowOffset + pressOffsetY, width, height);
-
-        spriteBatch.setColor(PANEL_OUTLINE);
-        patch.draw(spriteBatch, x, y + pressOffsetY, width, height);
-
-        // The button shape stays constant across states; only the fill changes to show
-        // hover and pressed feedback without changing the layout or hitbox.
-        Color fillColor;
-        if (state == MainMenuButton.State.NORMAL) {
-            fillColor = PANEL_FILL;
-        } else if (state == MainMenuButton.State.HOVER) {
-            fillColor = BUTTON_HOVER_FILL;
-        } else {
-            fillColor = BUTTON_PRESSED_FILL;
-        }
-        spriteBatch.setColor(fillColor);
-        patch.draw(spriteBatch, x + 5f, y + 5f + pressOffsetY, width - 10f, height - 10f);
-
-        spriteBatch.setColor(Color.WHITE);
-        buttonFont.setColor(Color.WHITE);
-        buttonFont.draw(
-            spriteBatch,
-            label,
-            x,
-            y + height / 2f + layout.height / 2f + pressOffsetY,
-            width,
-            Align.center,
-            false
-        );
-
-        spriteBatch.end();
     }
 
     /** Draws the saved best act and round using the menu panel style. */

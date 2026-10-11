@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class MainMenuInputHandlerTest {
+class MenuButtonInputHandlerTest {
     private static final MainMenuButton[] BUTTONS = {
         new MainMenuButton(MainMenuButton.Action.PLAY, "PLAY", -450f, 100f, 390f, 72f),
         new MainMenuButton(MainMenuButton.Action.QUIT, "QUIT", -450f, -300f, 390f, 72f)
@@ -28,14 +28,14 @@ class MainMenuInputHandlerTest {
 
     @Test
     void reportsNormalStateBeforeInteraction() {
-        MainMenuInputHandler handler = newHandler(action -> { });
+        MenuButtonInputHandler handler = newHandler(action -> { });
 
         assertEquals(MainMenuButton.State.NORMAL, handler.getButtonState(0));
     }
 
     @Test
     void reportsPressedStateWhenButtonIsTouched() {
-        MainMenuInputHandler handler = newHandler(action -> { });
+        MenuButtonInputHandler handler = newHandler(action -> { });
         int[] playPoint = screenPoint(-300f, 130f);
 
         assertTrue(handler.touchDown(playPoint[0], playPoint[1], 0, 0));
@@ -45,7 +45,7 @@ class MainMenuInputHandlerTest {
     @Test
     void dispatchesPlayActionWhenReleasedInsidePlayButton() {
         AtomicReference<MainMenuButton.Action> selectedAction = new AtomicReference<>();
-        MainMenuInputHandler handler = newHandler(selectedAction::set);
+        MenuButtonInputHandler handler = newHandler(selectedAction::set);
         int[] playPoint = screenPoint(-300f, 130f);
 
         handler.touchDown(playPoint[0], playPoint[1], 0, 0);
@@ -57,7 +57,7 @@ class MainMenuInputHandlerTest {
     @Test
     void dispatchesQuitActionWhenReleasedInsideQuitButton() {
         AtomicReference<MainMenuButton.Action> selectedAction = new AtomicReference<>();
-        MainMenuInputHandler handler = newHandler(selectedAction::set);
+        MenuButtonInputHandler handler = newHandler(selectedAction::set);
         int[] quitPoint = screenPoint(-300f, -260f);
 
         handler.touchDown(quitPoint[0], quitPoint[1], 0, 0);
@@ -69,7 +69,7 @@ class MainMenuInputHandlerTest {
     @Test
     void doesNotDispatchActionWhenReleasedOutsidePressedButton() {
         AtomicReference<MainMenuButton.Action> selectedAction = new AtomicReference<>();
-        MainMenuInputHandler handler = newHandler(selectedAction::set);
+        MenuButtonInputHandler handler = newHandler(selectedAction::set);
         int[] playPoint = screenPoint(-300f, 130f);
         int[] outsidePoint = screenPoint(300f, 130f);
 
@@ -79,8 +79,8 @@ class MainMenuInputHandlerTest {
         assertNull(selectedAction.get());
     }
 
-    private MainMenuInputHandler newHandler(MainMenuButton.ActionHandler actionHandler) {
-        return new MainMenuInputHandler(camera, BUTTONS, actionHandler);
+    private MenuButtonInputHandler newHandler(MainMenuButton.ActionHandler actionHandler) {
+        return new MenuButtonInputHandler(camera, BUTTONS, actionHandler);
     }
 
     private int[] screenPoint(float worldX, float worldY) {
