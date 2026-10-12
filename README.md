@@ -3,10 +3,10 @@
 A roguelike game based on the classic game of roulette made in [libGDX](https://libgdx.com/).
 
 ## What is this project about?
-untitled roulette game is a roguelike spin on the classic game of roulette, with pixel graphics, various bosses, cards, charms and more! 
+untitled roulette game is a roguelike spin on the classic game of roulette, you start with 100 chips and five spins, test your luck and try to beat the rising quota. In between rounds, spend your hard earned tickets for cards and charms to help beat the rising odds! The game features three acts, each with five rounds and a boss at the end of an act, with endless mode as an extra challenge for those who beat the game. 
 
 ## Why this project is useful?
-Provides an interactive and randomised roulette gaming experience. 
+Provides an highly replayable and enjoyable roulette gaming experience. Each playthrough will contain different shop items and bosses so players will need to manage their odds, build unique strategies and face tough and varied bosses.
 
 ## Getting Started
 ### Pre-requisites 
@@ -16,21 +16,28 @@ Provides an interactive and randomised roulette gaming experience.
 - Supported OS: Windows x64, Linux x64, macOS (Intel & Apple Silicon)
 
 ### Installation 
-**Initial Step:** Clone the repository into your desired path with `git clone https://github.com/310-Team6-roulette/untitled-roulette-game.git`.
+**Initial Step:** Clone the repository into your desired path with 
+`git clone https://github.com/310-Team6-roulette/untitled-roulette-game.git`.
 
 ### Running the game
-- Windows (PowerShell/CMD):  .\gradlew.bat lwjgl3:run
-- macOS/Linux:               ./gradlew lwjgl3:run
+Windows:          
+`.\gradlew.bat lwjgl3:run`
+
+macOS/Linux:      
+`./gradlew lwjgl3:run`
 
 ## Testing
-- Tests are written with JUnit 5 and are in core/src/test/java
+Tests are written with JUnit 5 and are in the `core/src/test/java` folder and can be run with the following gradle commands: 
 
 ### Run all tests
-- Windows:              .\gradlew.bat :core:test
-- macOS/Linux:          ./gradlew :core:test
+Windows:          
+`.\gradlew.bat :core:test`
+
+macOS/Linux:      
+`./gradlew :core:test`
 
 ### Test results
-After testing, if all tests pass, no details will be written to terminal, more detailed results are stored in core/build/test-results/test folder.
+After testing, if all tests pass, no details will be written to terminal, with more detailed result stored in the `core/build/test-results/test` folder.
 
 ## Building with Gradle
 
@@ -60,6 +67,7 @@ This project is licensed under the **MIT License**. More details can be found in
 
 ## Versions
 - v1.0.0 Milestone 1
+- v2.0.0 Milestone 2
 
 ## Contributing
 
@@ -73,7 +81,7 @@ Contributions should be made through **GitHub forks**. Pull requests submitted d
 
 ## Tech Stack & Acknowledgements
 ### Technology Stack
-- **Backend:** Java 9, libGDX 1.14.2, Box2D physics, Gradle 9.6.1
+- **Backend:** Java, libGDX 1.14.2, Box2D physics, Gradle 9.6.1
 - **Frontend:** libGDX rendering (LWJGL 3.4.1/OpenGL), custom GLSL shaders, Terminus bitmap fonts
 - **Testing:** JUnit 5
 - **Code Quality:** SonarCloud, Snyk
