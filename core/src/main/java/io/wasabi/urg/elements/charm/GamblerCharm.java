@@ -25,7 +25,7 @@ public class GamblerCharm extends Charm {
     }
 
     public GamblerCharm() {
-        super("BlackCharm");
+        super("GamblerCharm");
         tooltip.setTitle("Gambler's Charm");
         tooltip.setDescription("Choose one tile. Gains are increased by 25%, but landing on it loses 50% of your current chips.");
     }
