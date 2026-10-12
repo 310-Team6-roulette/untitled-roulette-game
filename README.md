@@ -5,6 +5,9 @@ A roguelike game based on the classic game of roulette made in [libGDX](https://
 ## What is this project about?
 untitled roulette game is a roguelike spin on the classic game of roulette, with pixel graphics, various bosses, cards, charms and more! 
 
+## Why this project is useful?
+Provides an interactive and randomised roulette gaming experience. 
+
 ## Getting Started
 ### Pre-requisites 
 - Java JDK 17 or newer, Gradle 9.6.1 requires a 17+ runtime.
