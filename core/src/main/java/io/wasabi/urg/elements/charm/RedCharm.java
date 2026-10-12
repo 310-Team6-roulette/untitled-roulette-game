@@ -27,6 +27,7 @@ public class RedCharm extends Charm {
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
                 tile.setColor(TileType.TileColour.RED);
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

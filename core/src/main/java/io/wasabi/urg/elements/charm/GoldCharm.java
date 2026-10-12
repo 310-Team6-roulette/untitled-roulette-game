@@ -31,6 +31,7 @@ public class GoldCharm extends Charm {
                 goldType.setNumber(originalType.getNumber());
                 goldType.setBetMultiplier(originalType.getBetMultiplier());
                 tile.setType(goldType);
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

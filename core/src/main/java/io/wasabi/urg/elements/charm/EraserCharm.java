@@ -29,6 +29,7 @@ public class EraserCharm extends Charm {
                 numberless.setColour(tile.getType().getColour());
                 numberless.getTooltip().setTitle("NUMBERLESS");
                 tile.setType(numberless);
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

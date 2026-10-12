@@ -27,6 +27,7 @@ public class PaperCharm extends Charm {
             Tile tile = selectedTiles.get(0);
             TileType paperType = new PaperTile(tile.getType(), tile);
             tile.setTemporaryType(paperType);
+            tile.recordCharmEffect();
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();
             SoundManager.getInstance().playSound("charmConsume");

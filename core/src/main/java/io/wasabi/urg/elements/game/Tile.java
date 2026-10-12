@@ -63,6 +63,7 @@ public class Tile extends GameObject {
 
     private boolean selected = false;
     private boolean evil = false;
+    private int charmEffectCount = 0;
 
     // Used to track changes to this tile's colour or number — the two attributes
     // {@link io.wasabi.urg.elements.betting.BettingTable}'s cached layout keys bet
@@ -400,6 +401,15 @@ public class Tile extends GameObject {
     public void setSize(float size) {
         this.size = size;
         update();
+    }
+
+    /** Records one charm affecting this tile for boss and difficulty mechanics. */
+    public void recordCharmEffect() {
+        charmEffectCount++;
+    }
+
+    public int getCharmEffectCount() {
+        return charmEffectCount;
     }
 
     public TileType getType() {

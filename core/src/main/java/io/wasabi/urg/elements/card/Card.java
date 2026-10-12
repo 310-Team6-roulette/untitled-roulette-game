@@ -41,6 +41,7 @@ public abstract class Card extends GameObject {
     private float width;
     private float height;
     private boolean dragging = false;
+    private boolean covered = false;
     private float targetX;
     private float targetY;
     private boolean hasTarget = false;
@@ -110,6 +111,11 @@ public abstract class Card extends GameObject {
         float nWidth = width * mult;
         float nHeight = height * mult;
         RendererManager.getInstance().getSpriteBatch().draw(sprite, x - width/2 * (mult - 1), y - height/2 * (mult - 1), nWidth, nHeight);
+        if (covered) {
+            spriteBatch.setColor(0f, 0f, 0f, 0.85f);
+            spriteBatch.draw(sprite, x, y, width, height);
+            spriteBatch.setColor(1f, 1f, 1f, 1f);
+        }
     }
 
     public boolean contains(float worldX, float worldY) {
@@ -144,6 +150,13 @@ public abstract class Card extends GameObject {
     public int getSellPrice() { return sellPrice; }
     public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
+    public boolean isCovered() { return covered; }
+    public void setCovered(boolean covered) {
+        this.covered = covered;
+        if (covered) {
+            tooltip.hide();
+        }
+    }
     public Tooltip getTooltip() { return tooltip; }
 
     public void setDragging(boolean dragging) {
