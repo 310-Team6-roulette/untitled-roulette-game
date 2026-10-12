@@ -11,6 +11,7 @@ import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.Charm;
+import io.wasabi.urg.elements.charm.GamblerCharm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.ui.Tooltip;
 
@@ -26,6 +27,7 @@ public final class RunState {
     private int pendingSettlementStake = 0;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
+    private Tile evilTile = null;
     private Tooltip activeTooltip = null;
 
     private final List<Tile> tiles = new ArrayList<>();
@@ -42,6 +44,34 @@ public final class RunState {
 
     public int getChips() {
         return chips;
+    }
+
+    public Tile getEvilTile() {
+        return evilTile;
+    }
+
+    public void setEvilTile(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("evil tile cannot be null");
+        }
+        if (evilTile != null && evilTile != tile) {
+            evilTile.setEvil(false);
+        }
+        evilTile = tile;
+        tile.setEvil(true);
+    }
+
+    public float getEvilGainMultiplier() {
+        return evilTile == null ? 1f : GamblerCharm.GAIN_MULTIPLIER;
+    }
+
+    public int applyEvilLandingPenalty(Tile tile) {
+        if (tile == null || tile != evilTile) {
+            return 0;
+        }
+        int penalty = GamblerCharm.calculateLandingPenalty(chips);
+        spendChips(penalty);
+        return penalty;
     }
 
     public void setChips(int chips) {
@@ -267,6 +297,7 @@ public final class RunState {
         score = 0;
         tickets = 5;
         lastTile = null;
+        evilTile = null;
         clearSelectedTiles();
         activeTooltip = null;
         boss = null;
@@ -382,6 +413,7 @@ public final class RunState {
         int rawPayout = 0;
 
         float globalMultiplier = 1f;
+        globalMultiplier *= getEvilGainMultiplier();
         float cardFlatBonus = 0f;
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
