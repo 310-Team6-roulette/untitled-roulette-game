@@ -212,10 +212,10 @@ public class GameScreen implements Screen {
             if (victory != null) {
                 victory.hide();
             }
+            // Award the boss-round reward before startEndless() resets the spins counter.
+            game.getRoundManager().awardTickets();
             game.getRoundManager().startEndless();
-            game.getRunState().reset(STARTING_CHIPS);
-            enterRoundScreen();
-            gameState = GameState.ROUND;
+            enterShopScreen();
         } else if (action == Victory.Action.PLAY_AGAIN) {
             playTileSelectSound();
             restartGame();
