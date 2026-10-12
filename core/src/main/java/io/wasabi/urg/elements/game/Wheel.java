@@ -32,15 +32,17 @@ public class Wheel {
     /** Captures mutable wheel properties so temporary boss effects can be undone exactly. */
     public static final class State {
         private final float rotation;
+        private final Tile[] tiles;
         private final float[] sizes;
         private final int[] numbers;
         private final float[] betMultipliers;
         private final float[] flatBonuses;
         private final float[] postMultiplierBonuses;
 
-        private State(float rotation, float[] sizes, int[] numbers, float[] betMultipliers,
+        private State(float rotation, Tile[] tiles, float[] sizes, int[] numbers, float[] betMultipliers,
                 float[] flatBonuses, float[] postMultiplierBonuses) {
             this.rotation = rotation;
+            this.tiles = tiles;
             this.sizes = sizes;
             this.numbers = numbers;
             this.betMultipliers = betMultipliers;
@@ -336,6 +338,7 @@ public class Wheel {
     /** Returns a deep snapshot of the mutable state of the current wheel tiles. */
     public State captureState() {
         int tileCount = tiles.size();
+        Tile[] savedTiles = new Tile[tileCount];
         float[] sizes = new float[tileCount];
         int[] numbers = new int[tileCount];
         float[] betMultipliers = new float[tileCount];
@@ -344,6 +347,7 @@ public class Wheel {
 
         for (int i = 0; i < tileCount; i++) {
             Tile tile = tiles.get(i);
+            savedTiles[i] = tile;
             sizes[i] = tile.getSize();
             numbers[i] = tile.getNumber();
             betMultipliers[i] = tile.getBetMultiplier();
@@ -351,23 +355,33 @@ public class Wheel {
             postMultiplierBonuses[i] = tile.getPostMultiplierBonus();
         }
 
-        return new State(rotation, sizes, numbers, betMultipliers, flatBonuses, postMultiplierBonuses);
+        return new State(rotation, savedTiles, sizes, numbers, betMultipliers, flatBonuses, postMultiplierBonuses);
     }
 
     /** Restores a previously captured wheel state without replacing tile types or colours. */
     public void restoreState(State state) {
-        if (state == null || state.sizes.length != tiles.size()) {
-            throw new IllegalArgumentException("state must match the wheel tile count");
+        if (state == null || tiles.size() > state.tiles.length) {
+            throw new IllegalArgumentException("state must contain every current wheel tile");
         }
 
         setRotation(state.rotation);
-        for (int i = 0; i < tiles.size(); i++) {
-            Tile tile = tiles.get(i);
-            tile.setSize(state.sizes[i]);
-            tile.setNumber(state.numbers[i]);
-            tile.setBetMultiplier(state.betMultipliers[i]);
-            tile.setFlatBonus(state.flatBonuses[i]);
-            tile.getType().setPostMultiplierBonus(state.postMultiplierBonuses[i]);
+        for (Tile tile : tiles) {
+            int savedIndex = -1;
+            for (int i = 0; i < state.tiles.length; i++) {
+                if (state.tiles[i] == tile) {
+                    savedIndex = i;
+                    break;
+                }
+            }
+            if (savedIndex < 0) {
+                throw new IllegalArgumentException("state does not contain every current wheel tile");
+            }
+
+            tile.setSize(state.sizes[savedIndex]);
+            tile.setNumber(state.numbers[savedIndex]);
+            tile.setBetMultiplier(state.betMultipliers[savedIndex]);
+            tile.setFlatBonus(state.flatBonuses[savedIndex]);
+            tile.getType().setPostMultiplierBonus(state.postMultiplierBonuses[savedIndex]);
         }
     }
 
