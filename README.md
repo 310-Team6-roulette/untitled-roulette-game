@@ -17,24 +17,24 @@ Provides an highly replayable and enjoyable roulette gaming experience. Each pla
 
 ### Installation 
 **Initial Step:** Clone the repository into your desired path with 
-`git clone https://github.com/310-Team6-roulette/untitled-roulette-game.git`.
+```git clone https://github.com/310-Team6-roulette/untitled-roulette-game.git```.
 
 ### Running the game
 Windows:          
-`.\gradlew.bat lwjgl3:run`
+```./gradlew.bat lwjgl3:run```
 
 macOS/Linux:      
-`./gradlew lwjgl3:run`
+```./gradlew lwjgl3:run```
 
 ## Testing
 Tests are written with JUnit 5 and are in the `core/src/test/java` folder and can be run with the following gradle commands: 
 
 ### Run all tests
 Windows:          
-`.\gradlew.bat :core:test`
+```./gradlew.bat :core:test```
 
 macOS/Linux:      
-`./gradlew :core:test`
+```./gradlew :core:test```
 
 ### Test results
 After testing, if all tests pass, no details will be written to terminal, with more detailed result stored in the `core/build/test-results/test` folder.
