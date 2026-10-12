@@ -5,6 +5,7 @@ import io.wasabi.urg.elements.boss.Bartender;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.boss.Gamer;
 import io.wasabi.urg.elements.boss.Taxman;
+import io.wasabi.urg.elements.boss.House;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.state.RunState;
@@ -30,6 +31,7 @@ public class RoundManager {
     private final RunState runState;
 
     private final List<Boss> act1Bosses = new ArrayList<Boss>();
+    private final List<Boss> finalBosses = new ArrayList<Boss>();
 
     public RoundManager(RunState runState) {
         this.runState = runState;
@@ -49,11 +51,13 @@ public class RoundManager {
 
     private void initializeBossPool() {
         act1Bosses.clear();
+        finalBosses.clear();
 
         // Act 1
         act1Bosses.add(new Bartender());
         act1Bosses.add(new Gamer());
         act1Bosses.add(new Taxman());
+        finalBosses.add(new House());
     }
 
     /**
@@ -67,6 +71,8 @@ public class RoundManager {
         List<Boss> bossPool;
         if (act == 1) {
             bossPool = act1Bosses;
+        } else if (act == TOTAL_ACTS) {
+            bossPool = finalBosses;
         } else {
             bossPool = new ArrayList<>();
         }

@@ -28,8 +28,8 @@ public class WeakeningCharm extends Charm {
             super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                TileType type = tile.getType();
-                type.setNumber(Math.max(type.getNumber() - 1, 0));
+                tile.setNumber(Math.max(tile.getNumber() - 1, 0));
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

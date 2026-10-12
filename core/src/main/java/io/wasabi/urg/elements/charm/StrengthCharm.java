@@ -28,8 +28,8 @@ public class StrengthCharm extends Charm {
             super.consume();
             List<Tile> selectedTiles = Roulette.getInstance().getRunState().getSelectedTiles();
             for (Tile tile : selectedTiles) {
-                TileType type = tile.getType();
-                type.setNumber(Math.min(type.getNumber() + 1, 36));
+                tile.setNumber(Math.min(tile.getNumber() + 1, 36));
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

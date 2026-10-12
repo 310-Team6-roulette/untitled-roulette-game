@@ -300,14 +300,21 @@ public final class RunState {
         evilTile = null;
         clearSelectedTiles();
         activeTooltip = null;
-        boss = null;
         freeSpinRequested = false;
         pendingSettlementStake = 0;
         activeBets.clear();
 
+        // Bosses may hold temporary global state (for example payout changes or
+        // covered cards) when a run ends before ROUND_END is dispatched.
+        if (boss != null) {
+            boss.roundEndEffect();
+            boss = null;
+        }
+
         for (Card card : ownedCards) {
             // Undo each card's lasting changes so a reused card doesn't carry them into the next run.
             card.getTooltip().hide();
+            card.setCovered(false);
             card.removedEffect();
             Roulette.getInstance().getCardPool().returnCard(card);
         }
@@ -418,6 +425,9 @@ public final class RunState {
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
+                if (card.isCovered()) {
+                    continue;
+                }
                 globalMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
                 cardFlatBonus += card.getFlatBonus(lastTile, totalStaked, chips);
             }
@@ -495,8 +505,15 @@ public final class RunState {
      * @param effectType The type of effect to trigger.
      */
     public void triggerEffects(EffectType effectType) {
+        // Bosses must establish round-start restrictions before cards receive
+        // their trigger, otherwise cards covered by the House still activate.
+        if (effectType == EffectType.ROUND_START) {
+            triggerBossEffects(effectType);
+        }
         triggerCardEffects(effectType);
-        triggerBossEffects(effectType);
+        if (effectType != EffectType.ROUND_START) {
+            triggerBossEffects(effectType);
+        }
     }
 
     private void triggerCardEffects(EffectType effectType) {
@@ -504,6 +521,9 @@ public final class RunState {
 
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
+                if (card.isCovered()) {
+                    continue;
+                }
                 switch (effectType) {
                     case ROUND_START:
                         card.roundStartEffect();
@@ -527,7 +547,9 @@ public final class RunState {
         }
 
         for (Card card : ownedCards) {
-            card.afterCardEffects(effectType);
+            if (!card.isCovered()) {
+                card.afterCardEffects(effectType);
+            }
         }
     }
 
@@ -561,6 +583,9 @@ public final class RunState {
         int additionalTriggers = 0;
         int triggerMultiplier = 1;
         for (Card card : ownedCards) {
+            if (card.isCovered()) {
+                continue;
+            }
             additionalTriggers += card.getAdditionalEffectTriggers();
             triggerMultiplier *= card.getEffectTriggerMultiplier();
         }

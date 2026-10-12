@@ -39,7 +39,7 @@ public class CardInputHandler extends InputAdapter {
         List<Card> cards = runState.getOwnedCards();
         for (int i = cards.size() - 1; i >= 0; i--) {
             Card card = cards.get(i);
-            if (card.contains(world.x, world.y)) {
+            if (!card.isCovered() && card.contains(world.x, world.y)) {
                 draggedCard = card;
                 draggedCard.setDragging(true);
                 dragOffset.set(world.x - card.getX(), world.y - card.getY());
@@ -84,7 +84,7 @@ public class CardInputHandler extends InputAdapter {
     private Card findHoveredCard(List<Card> cards, Vector2 world) {
         for (int i = cards.size() - 1; i >= 0; i--) {
             Card card = cards.get(i);
-            if (card.contains(world.x, world.y)) {
+            if (!card.isCovered() && card.contains(world.x, world.y)) {
                 return card;
             }
         }

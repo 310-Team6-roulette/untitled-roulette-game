@@ -31,6 +31,7 @@ public class MetallicCharm extends Charm {
                 metallicType.setNumber(originalType.getNumber());
                 metallicType.setBetMultiplier(originalType.getBetMultiplier() * 1.5f);
                 tile.setType(metallicType);
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

@@ -29,6 +29,26 @@ import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
 public class Wheel {
+    /** Captures mutable wheel properties so temporary boss effects can be undone exactly. */
+    public static final class State {
+        private final float rotation;
+        private final float[] sizes;
+        private final int[] numbers;
+        private final float[] betMultipliers;
+        private final float[] flatBonuses;
+        private final float[] postMultiplierBonuses;
+
+        private State(float rotation, float[] sizes, int[] numbers, float[] betMultipliers,
+                float[] flatBonuses, float[] postMultiplierBonuses) {
+            this.rotation = rotation;
+            this.sizes = sizes;
+            this.numbers = numbers;
+            this.betMultipliers = betMultipliers;
+            this.flatBonuses = flatBonuses;
+            this.postMultiplierBonuses = postMultiplierBonuses;
+        }
+    }
+
     private static final Roulette GAME = Roulette.getInstance();
     private static final RunState RUN_STATE = GAME.getRunState();
 
@@ -36,7 +56,7 @@ public class Wheel {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
-    private static final int[] WHEEL_NUMBER_ORDER = new int[] {
+    public static final int[] WHEEL_NUMBER_ORDER = new int[] {
             0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22,
             18, 29, 7, 28, 12, 35, 3, 26};
 
@@ -313,9 +333,74 @@ public class Wheel {
     public List<Tile> getTiles() { return tiles; }
     public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
 
+    /** Returns a deep snapshot of the mutable state of the current wheel tiles. */
+    public State captureState() {
+        int tileCount = tiles.size();
+        float[] sizes = new float[tileCount];
+        int[] numbers = new int[tileCount];
+        float[] betMultipliers = new float[tileCount];
+        float[] flatBonuses = new float[tileCount];
+        float[] postMultiplierBonuses = new float[tileCount];
+
+        for (int i = 0; i < tileCount; i++) {
+            Tile tile = tiles.get(i);
+            sizes[i] = tile.getSize();
+            numbers[i] = tile.getNumber();
+            betMultipliers[i] = tile.getBetMultiplier();
+            flatBonuses[i] = tile.getFlatBonus();
+            postMultiplierBonuses[i] = tile.getPostMultiplierBonus();
+        }
+
+        return new State(rotation, sizes, numbers, betMultipliers, flatBonuses, postMultiplierBonuses);
+    }
+
+    /** Restores a previously captured wheel state without replacing tile types or colours. */
+    public void restoreState(State state) {
+        if (state == null || state.sizes.length != tiles.size()) {
+            throw new IllegalArgumentException("state must match the wheel tile count");
+        }
+
+        setRotation(state.rotation);
+        for (int i = 0; i < tiles.size(); i++) {
+            Tile tile = tiles.get(i);
+            tile.setSize(state.sizes[i]);
+            tile.setNumber(state.numbers[i]);
+            tile.setBetMultiplier(state.betMultipliers[i]);
+            tile.setFlatBonus(state.flatBonuses[i]);
+            tile.getType().setPostMultiplierBonus(state.postMultiplierBonuses[i]);
+        }
+    }
+
     public void resetTileMultipliers() {
         for (Tile tile : tiles) {
             tile.setBetMultiplier(1f);
+        }
+    }
+
+    /** Restores roulette numbers without replacing tile types or changing colours. */
+    public void resetNumbersPreservingColours() {
+        int count = Math.min(tiles.size(), WHEEL_NUMBER_ORDER.length);
+        for (int i = 0; i < count; i++) {
+            tiles.get(i).setNumber(WHEEL_NUMBER_ORDER[i]);
+        }
+    }
+
+    /** Returns the current number order without exposing the wheel's tile state. */
+    public int[] getNumbers() {
+        int[] numbers = new int[tiles.size()];
+        for (int i = 0; i < tiles.size(); i++) {
+            numbers[i] = tiles.get(i).getNumber();
+        }
+        return numbers;
+    }
+
+    /** Restores a previously captured number order without changing tile types or colours. */
+    public void setNumbers(int[] numbers) {
+        if (numbers == null || numbers.length != tiles.size()) {
+            throw new IllegalArgumentException("numbers must match the wheel tile count");
+        }
+        for (int i = 0; i < tiles.size(); i++) {
+            tiles.get(i).setNumber(numbers[i]);
         }
     }
 

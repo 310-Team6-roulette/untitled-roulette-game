@@ -35,6 +35,7 @@ public class ScrambledCharm extends Charm {
                 // pocket this tile belongs to and keeps rendering/paying out a stale
                 // layout. See Tile#setNumber.
                 tile.setNumber(randomNumber);
+                tile.recordCharmEffect();
             }
             Roulette.getInstance().getRunState().clearSelectedTiles();
             removeAndReturnToPool();

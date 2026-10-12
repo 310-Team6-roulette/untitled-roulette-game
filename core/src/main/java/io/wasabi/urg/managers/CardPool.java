@@ -56,6 +56,9 @@ public final class CardPool {
             return;
         }
 
+        // Pool entries must always be reusable in their default state.
+        card.setCovered(false);
+
         List<Card> pool;
         switch (card.getRarity()) {
             case COMMON:
