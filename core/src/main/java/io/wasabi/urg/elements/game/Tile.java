@@ -62,6 +62,7 @@ public class Tile extends GameObject {
     private Fixture fret;
 
     private boolean selected = false;
+    private boolean evil = false;
 
     // Used to track changes to this tile's colour or number — the two attributes
     // {@link io.wasabi.urg.elements.betting.BettingTable}'s cached layout keys bet
@@ -236,6 +237,34 @@ public class Tile extends GameObject {
         if (selected) {
             renderSelectionOutline();
         }
+        if (evil) {
+            renderEvilOutline();
+        }
+    }
+
+    private void renderEvilOutline() {
+        float r1 = radius;
+        float r2 = radius + height + numHeight;
+        float radians = degrees * MathUtils.degreesToRadians * size;
+        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
+        float radInc = radians / segments;
+
+        SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+        SHAPE_RENDERER.setColor(0.75f, 0.05f, 0.05f, 1f);
+        Gdx.gl.glLineWidth(5);
+        float rot = rotation;
+        float previousX = position.x + r2 * MathUtils.cos(rot);
+        float previousY = position.y + r2 * MathUtils.sin(rot);
+        for (int i = 1; i <= segments; i++) {
+            rot += radInc;
+            float x = position.x + r2 * MathUtils.cos(rot);
+            float y = position.y + r2 * MathUtils.sin(rot);
+            SHAPE_RENDERER.line(previousX, previousY, x, y);
+            previousX = x;
+            previousY = y;
+        }
+        SHAPE_RENDERER.end();
+        Gdx.gl.glLineWidth(1);
     }
 
     private void renderSelectionOutline() {
@@ -277,6 +306,7 @@ public class Tile extends GameObject {
 
     public void onLanded() {
         type.onLanded();
+        io.wasabi.urg.Roulette.getInstance().getRunState().applyEvilLandingPenalty(this);
     }
 
     public Tooltip getTooltip() {
@@ -314,6 +344,19 @@ public class Tile extends GameObject {
 
     public boolean isSelected() {
         return selected;
+    }
+
+    public boolean isEvil() {
+        return evil;
+    }
+
+    public void setEvil(boolean evil) {
+        this.evil = evil;
+        if (evil) {
+            type.getTooltip().setTitle(String.format("[#B30D0DFF]EVIL %d", type.getNumber()));
+            type.getTooltip().setDescriptionVisible(true);
+            type.getTooltip().setDescription("Gains are increased by 25%. Landing here removes 50% of your current chips.");
+        }
     }
 
     public void setSelected(boolean selected) {
