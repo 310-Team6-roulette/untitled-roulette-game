@@ -67,7 +67,7 @@ public final class House extends Boss {
         coverRandomCards(state.getOwnedCards(), difficulty.coveredCards, new Random());
         coveredCards.clear();
         for (Card card : state.getOwnedCards()) {
-            if (card.isCovered() && !previouslyCovered.contains(card)) {
+            if (card != null && card.isCovered() && !previouslyCovered.contains(card)) {
                 coveredCards.add(card);
             }
         }
