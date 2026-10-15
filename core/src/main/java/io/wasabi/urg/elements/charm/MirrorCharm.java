@@ -43,6 +43,7 @@ public class MirrorCharm extends Charm {
                 targetType.setColour(sourceType.getColour());
                 targetType.setNumber(sourceType.getNumber());
                 target.setType(targetType);
+                target.recordCharmEffect();
             } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException |
                      InvocationTargetException e) {
                 throw new IllegalArgumentException("Failed to create a new instance of " + sourceType.getClass().getSimpleName(), e);

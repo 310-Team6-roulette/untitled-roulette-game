@@ -4,7 +4,10 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.boss.Bartender;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.boss.Gamer;
+import io.wasabi.urg.elements.boss.Taxman;
+import io.wasabi.urg.elements.boss.House;
 import io.wasabi.urg.elements.game.Tile;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.state.RunState;
 
 import java.util.ArrayList;
@@ -27,7 +30,7 @@ public class RoundManager {
     private boolean runComplete;
     private final RunState runState;
 
-    private final List<Boss> act1Bosses = new ArrayList<Boss>();
+    private final List<Boss> endlessBosses = new ArrayList<Boss>();
 
     public RoundManager(RunState runState) {
         this.runState = runState;
@@ -41,39 +44,43 @@ public class RoundManager {
         spinsRemaining = SPINS_PER_ROUND;
         gameOver = false;
         runComplete = false;
+        // Bosses are removed from the pool as they're fought, so refill it for the new run.
+        initializeBossPool();
     }
 
     private void initializeBossPool() {
-        act1Bosses.clear();
-
-        // Act 1
-        act1Bosses.add(new Bartender());
-        act1Bosses.add(new Gamer());
+        endlessBosses.clear();
+        endlessBosses.add(new Bartender());
+        endlessBosses.add(new Gamer());
+        endlessBosses.add(new Taxman());
+        endlessBosses.add(new House());
     }
 
     /**
-     * Selects a random boss from the pool for the given act and removes it from the pool.
-     * If there are no bosses left in the pool for that act, returns null.
+     * Selects the campaign boss for Acts 1-3, or a random boss from the Endless
+     * pool for later acts. The Endless pool is replenished after every available
+     * boss has been selected.
      *
      * @param act The act for which to select a boss.
-     * @return A randomly selected boss for the given act, or null if no bosses are left.
+     * @return The boss assigned to the act.
      */
-    private Boss selectRandomBossForAct(int act) {
-        List<Boss> bossPool;
+    Boss selectBossForAct(int act) {
         if (act == 1) {
-            bossPool = act1Bosses;
-        } else {
-            bossPool = new ArrayList<>();
+            return new Taxman();
+        }
+        if (act == 2) {
+            return new Gamer();
+        }
+        if (act == TOTAL_ACTS) {
+            return new House();
         }
 
-        if (!bossPool.isEmpty()) {
-            int randomIndex = (int) (Math.random() * bossPool.size());
-            Boss selectedBoss = bossPool.get(randomIndex);
-            bossPool.remove(randomIndex);
-            return selectedBoss;
-        } else {
-            return null;
+        if (endlessBosses.isEmpty()) {
+            initializeBossPool();
         }
+
+        int randomIndex = (int) (Math.random() * endlessBosses.size());
+        return endlessBosses.remove(randomIndex);
     }
 
     /**
@@ -102,7 +109,7 @@ public class RoundManager {
         currentConfig = buildConfig();
 
         if (currentConfig.isBossRound()) {
-            Boss boss = selectRandomBossForAct(act);
+            Boss boss = selectBossForAct(act);
             runState.setBoss(boss);
             System.out.println("Starting boss round against: " + (boss != null ? boss.getName() : "No Boss"));
         } else {
@@ -110,7 +117,7 @@ public class RoundManager {
         }
 
         runState.setChips(STARTING_CHIPS);
-        runState.triggerEffects("roundStart");
+        runState.triggerEffects(EffectType.ROUND_START);
     }
 
     /**
@@ -134,7 +141,7 @@ public class RoundManager {
             lastTile.onLanded();
         }
 
-        Roulette.getInstance().getRunState().triggerEffects("afterSpin");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.AFTER_SPIN);
 
         if (runState.getChips() >= currentConfig.getQuota()) {
             advance();
@@ -148,8 +155,14 @@ public class RoundManager {
      * If the round is complete, it will either advance to the next round or end the run.
      */
     public void advance() {
-        runState.triggerEffects("roundEnd");
+        runState.triggerEffects(EffectType.ROUND_END);
         runState.recordRoundBalance();
+
+        if (round == ROUNDS_PER_ACT && act == TOTAL_ACTS) {
+            runComplete = true;
+            completeRun();
+            return;
+        }
 
         // Reset tile multiplier for the next round
         if (round == ROUNDS_PER_ACT) {
@@ -168,10 +181,47 @@ public class RoundManager {
         );
     }
 
+    private void completeRun() {
+        Roulette game = Roulette.getInstance();
+        game.getHighScoreManager().recordScore(act, round);
+        if (game.getGameScreen() != null) {
+            game.getGameScreen().showVictory(
+                    currentConfig.getQuota(),
+                    runState.getChips(),
+                    spinsRemaining,
+                    act,
+                    round
+            );
+        }
+    }
+
+    public void startEndless() {
+        act = TOTAL_ACTS + 1;
+        round = 1;
+        runComplete = false;
+        spinsRemaining = SPINS_PER_ROUND;
+        initializeBossPool();
+    }
+
+    public void setRunComplete(boolean runComplete) {
+        this.runComplete = runComplete;
+    }
+
     public void gameOver() {
         gameOver = true;
-        if (Roulette.getInstance().getGameScreen() != null) {
-            Roulette.getInstance().getGameScreen().showGameOver();
+
+        Roulette game = Roulette.getInstance();
+        // Record progress before showing the defeat screen so the menu can display it immediately.
+        game.getHighScoreManager().recordScore(act, round);
+
+        if (game.getGameScreen() != null) {
+            game.getGameScreen().showGameOver(
+                currentConfig.getQuota(),
+                runState.getChips(),
+                spinsRemaining,
+                act,
+                round
+            );
         }
     }
 

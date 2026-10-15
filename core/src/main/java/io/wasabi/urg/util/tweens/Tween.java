@@ -120,6 +120,10 @@ public class Tween {
         complete = false;
     }
 
+    public float getTimeRemaining() {
+        return Math.max(0f, duration - time);
+    }
+
     public boolean isComplete() {
         return complete;
     }

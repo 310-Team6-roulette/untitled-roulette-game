@@ -6,6 +6,7 @@ import io.wasabi.urg.Roulette;
 import io.wasabi.urg.elements.GameObject;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
 
@@ -30,6 +31,10 @@ public class Charm extends GameObject{
     private int sellPrice = 1;
 
     protected Charm() {
+        this(null);
+    }
+
+    protected Charm(String textureName) {
         this.x = 0;
         this.y = 0;
         this.width = 64;
@@ -38,7 +43,7 @@ public class Charm extends GameObject{
         tooltip.setTitle("Charm");
         tooltip.setDescription("Edit this in the concrete class!!");
 
-        loadSprite();
+        loadSprite(textureName);
     }
 
     /*
@@ -46,12 +51,13 @@ public class Charm extends GameObject{
      * The card's class name is used to determine the texture file name.
      * So use the class name of the card as the texture file name (without the .png extension).
      */
-    private void loadSprite() {
-        this.texture = TextureManager.getInstance().getTexture(getClass().getSimpleName(), "charm");
+    private void loadSprite(String textureName) {
+        String name = textureName == null ? getClass().getSimpleName() : textureName;
+        this.texture = TextureManager.getInstance().getTexture(name, "charm");
     }
 
     public void consume() {
-        Roulette.getInstance().getRunState().triggerEffects("charmConsumed");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.CHARM_CONSUMED);
     }
     public boolean requirements() { return true; }
 

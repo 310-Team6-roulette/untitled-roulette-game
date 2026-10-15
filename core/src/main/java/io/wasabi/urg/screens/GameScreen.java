@@ -8,7 +8,6 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputMultiplexer;
 import com.badlogic.gdx.Screen;
-import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
@@ -31,6 +30,7 @@ import io.wasabi.urg.managers.CardInputHandler;
 import io.wasabi.urg.managers.CharmInputHandler;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.*;
 
 public class GameScreen implements Screen {
@@ -48,7 +48,8 @@ public class GameScreen implements Screen {
         ROUND,
         RESULT,
         SHOP,
-        GAME_OVER
+        GAME_OVER,
+        VICTORY
     }
 
     private GameState gameState;
@@ -74,6 +75,7 @@ public class GameScreen implements Screen {
     private RoundResult roundResult;
     private Shop shop;
     private GameOver gameOver;
+    private Victory victory;
     private QuotaTracker quotaTracker;
     private RoundInfoPanel roundInfoPanel;
     private final WinAnimation winAnimation = new WinAnimation();
@@ -111,12 +113,16 @@ public class GameScreen implements Screen {
         this.gameState = GameState.ROUND;
 
         this.wheel = new Wheel(world, wheelCenter);
-        this.ball = new Ball(world, 6f, wheelCenter);
+        this.ball = new Ball(world, 6f, wheel);
 
         this.roundResult = new RoundResult(shapeRenderer, spriteBatch);
         this.shop = new Shop(spriteBatch, game.getViewport());
         this.gameOver = new GameOver(shapeRenderer, spriteBatch, game.getViewport());
+        this.victory = new Victory(shapeRenderer, spriteBatch, game.getViewport());
         this.inputMultiplexer.addProcessor(2, shop);
+        // First in line so modal screens block input to everything beneath them while up.
+        this.inputMultiplexer.addProcessor(0, gameOver);
+        this.inputMultiplexer.addProcessor(0, victory);
         this.quotaTracker = new QuotaTracker(shapeRenderer, spriteBatch, game.getRunState(), game.getRoundManager());
         this.roundInfoPanel = new RoundInfoPanel(-700f, 250f);
         roundInfoPanel.updateRoundType();
@@ -137,8 +143,7 @@ public class GameScreen implements Screen {
      */
     private void launchSpin(boolean free) {
         float initialSpeed = random.nextFloat() * INITIAL_SPEED_RANGE + MIN_INITIAL_SPEED;
-        Roulette.getInstance().getRunState().triggerEffects("beforeSpin");
-        SoundManager.getInstance().playSound("spin1");
+        Roulette.getInstance().getRunState().triggerEffects(EffectType.BEFORE_SPIN);
         ball.setVisible(true);
 
         if (free) {
@@ -156,21 +161,72 @@ public class GameScreen implements Screen {
      * Handles input for the game screen, including UI interactions and game state transitions.
      */
     private void handleUIInput() {
-
-        if (gameState == GameState.RESULT) {
-            if (roundResult.handleInput()) {
-                Roulette.getInstance().getRoundManager().awardTickets();
-                SoundManager.getInstance().playSound("tileSelect");
-                enterShopScreen();
-            }
-        } else if (gameState == GameState.SHOP) {
-            if (shop.handleInput()) {
-                SoundManager.getInstance().playSound("tileSelect");
-                enterRoundScreen();
-            }
-        } else if (gameState == GameState.GAME_OVER && gameOver.isVisible() && Gdx.input.justTouched()) {
-            restartGame();
+        switch (gameState) {
+            case RESULT:
+                handleResultInput();
+                break;
+            case SHOP:
+                handleShopInput();
+                break;
+            case GAME_OVER:
+                handleGameOverInput();
+                break;
+            case VICTORY:
+                handleVictoryInput();
+                break;
+            default:
+                break;
         }
+    }
+
+    private void handleResultInput() {
+        if (roundResult.handleInput()) {
+            Roulette.getInstance().getRoundManager().awardTickets();
+            playTileSelectSound();
+            enterShopScreen();
+        }
+    }
+
+    private void handleShopInput() {
+        if (shop.handleInput()) {
+            playTileSelectSound();
+            enterRoundScreen();
+        }
+    }
+
+    private void handleGameOverInput() {
+        GameOver.Action action = gameOver.handleInput();
+        if (action == GameOver.Action.PLAY_AGAIN) {
+            playTileSelectSound();
+            restartGame();
+        } else if (action == GameOver.Action.MAIN_MENU) {
+            playTileSelectSound();
+            returnToMainMenu();
+        }
+    }
+
+    private void handleVictoryInput() {
+        Victory.Action action = victory.handleInput();
+        if (action == Victory.Action.ENDLESS_MODE) {
+            playTileSelectSound();
+            if (victory != null) {
+                victory.hide();
+            }
+            // Award the boss-round reward before startEndless() resets the spins counter.
+            game.getRoundManager().awardTickets();
+            game.getRoundManager().startEndless();
+            enterShopScreen();
+        } else if (action == Victory.Action.PLAY_AGAIN) {
+            playTileSelectSound();
+            restartGame();
+        } else if (action == Victory.Action.MAIN_MENU) {
+            playTileSelectSound();
+            returnToMainMenu();
+        }
+    }
+
+    private void playTileSelectSound() {
+        SoundManager.getInstance().playSound("tileSelect");
     }
 
     /**
@@ -191,23 +247,50 @@ public class GameScreen implements Screen {
         roundResult.show(quota, chips, baseReward, unusedSpinBonus, totalReward);
     }
 
-    public void showGameOver() {
+    /**
+     * Switches to the defeat screen after the player fails to meet the quota.
+     * @param quota The quota the player failed to reach.
+     * @param chips The chips the player had when the run ended.
+     * @param spinsRemaining The spins the player had left when the run ended.
+     * @param act The act the run ended on.
+     * @param round The round the run ended on.
+     */
+    public void showGameOver(int quota, int chips, int spinsRemaining, int act, int round) {
         this.gameState = GameState.GAME_OVER;
-        inputMultiplexer.removeProcessor(cardInputHandler);
-        inputMultiplexer.removeProcessor(charmInputHandler);
-        inputMultiplexer.removeProcessor(shop);
-        gameOver.show();
+        gameOver.show(quota, chips, spinsRemaining, act, round);
+    }
+
+    public void showVictory(int quota, long chips, int spinsRemaining, int act, int round) {
+        this.gameState = GameState.VICTORY;
+        if (victory != null) {
+            victory.show(quota, chips, spinsRemaining, act, round);
+        }
+        SoundManager.getInstance().playSound("winBet");
+    }
+
+    /**
+     * Resets the run so the game screen is fresh for the next PLAY, then goes back to the main menu.
+     */
+    public void returnToMainMenu() {
+        restartGame();
+        gameOver.hideImmediately();
+        if (victory != null) {
+            victory.hideImmediately();
+        }
+        game.setScreen(game.getMainMenuScreen());
     }
 
     public void restartGame() {
         game.getRunState().reset(STARTING_CHIPS);
         game.getRoundManager().reset();
+        // Clears physics changes from consumed charms (e.g. IcyCharm), which aren't tracked in RunState.
+        ball.resetPhysicsModifiers();
         wheel.reset();
         gameOver.hide();
+        if (victory != null) {
+            victory.hide();
+        }
         enterRoundScreen();
-        inputMultiplexer.addProcessor(0, cardInputHandler);
-        inputMultiplexer.addProcessor(1, charmInputHandler);
-        inputMultiplexer.addProcessor(2, shop);
         this.gameState = GameState.ROUND;
     }
 
@@ -230,9 +313,6 @@ public class GameScreen implements Screen {
 
     public void enterRoundScreen() {
         gameState = GameState.ROUND;
-
-        inputMultiplexer.addProcessor(0, cardInputHandler);
-        inputMultiplexer.addProcessor(1, charmInputHandler);
 
         shop.hide();
 
@@ -263,7 +343,9 @@ public class GameScreen implements Screen {
 
         // SpriteBatch renders
         updateBetButtonLayout();
-        betButton.update();
+        if (!gameOver.isVisible() && (victory == null || !victory.isVisible())) {
+            betButton.update();
+        }
         betButton.draw(spriteBatch);
 
         roundResult.update(delta);
@@ -309,6 +391,10 @@ public class GameScreen implements Screen {
 
         gameOver.update(delta);
         gameOver.render();
+        if (victory != null) {
+            victory.update(delta);
+            victory.render();
+        }
     }
 
     /**
@@ -317,6 +403,9 @@ public class GameScreen implements Screen {
      * @return The current state of the spin button.
      */
     private SpinButton.State getSpinButtonState() {
+        if (gameOver.isVisible()) {
+            return SpinButton.State.NO_BET;
+        }
         if (ball.getState() != Ball.State.STOPPED || wheel.isSpinning() || winAnimation.isActive()) {
             return SpinButton.State.SPINNING;
         }
@@ -377,6 +466,9 @@ public class GameScreen implements Screen {
     @Override
     public void resize(int width, int height) {
         updateBetButtonLayout();
+        if (victory != null) {
+            victory.resize(width, height);
+        }
     }
 
     @Override
@@ -524,6 +616,7 @@ public class GameScreen implements Screen {
 
     private boolean canBet() {
         return gameState != GameState.SHOP
+            && gameState != GameState.GAME_OVER
             && !wheel.isSpinning()
             && !winAnimation.isActive();
     }
@@ -553,7 +646,13 @@ public class GameScreen implements Screen {
         spriteBatch.dispose();
         ball.dispose();
         wheel.dispose();
-        betButtonTexture.dispose();
+        if (betButtonTexture != null) {
+            betButtonTexture.dispose();
+        }
+        gameOver.dispose();
+        if (victory != null) {
+            victory.dispose();
+        }
         world.dispose();
     }
 

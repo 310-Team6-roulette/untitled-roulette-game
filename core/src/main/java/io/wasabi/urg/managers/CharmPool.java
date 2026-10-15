@@ -14,10 +14,15 @@ public class CharmPool {
         GoldCharm::new,
         MetallicCharm::new,
         MirrorCharm::new,
+        PaperCharm::new,
         RedCharm::new,
         ScrambledCharm::new,
+        SledgehammerCharm::new,
         StrengthCharm::new,
-        WeakeningCharm::new
+        WeakeningCharm::new,
+        IcyCharm::new,
+        OverstockCharm::new,
+        GamblerCharm::new
     );
 
     private final Random random = new Random();

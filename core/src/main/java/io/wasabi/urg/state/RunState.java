@@ -11,6 +11,7 @@ import io.wasabi.urg.elements.betting.WinBreakdown;
 import io.wasabi.urg.elements.boss.Boss;
 import io.wasabi.urg.elements.card.Card;
 import io.wasabi.urg.elements.charm.Charm;
+import io.wasabi.urg.elements.charm.GamblerCharm;
 import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.ui.Tooltip;
 
@@ -26,6 +27,7 @@ public final class RunState {
     private int pendingSettlementStake = 0;
 
     private Tile lastTile = null; // The last tile the player landed on, used for certain card effects.
+    private Tile evilTile = null;
     private Tooltip activeTooltip = null;
 
     private final List<Tile> tiles = new ArrayList<>();
@@ -42,6 +44,34 @@ public final class RunState {
 
     public int getChips() {
         return chips;
+    }
+
+    public Tile getEvilTile() {
+        return evilTile;
+    }
+
+    public void setEvilTile(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("evil tile cannot be null");
+        }
+        if (evilTile != null && evilTile != tile) {
+            evilTile.setEvil(false);
+        }
+        evilTile = tile;
+        tile.setEvil(true);
+    }
+
+    public float getEvilGainMultiplier() {
+        return evilTile == null ? 1f : GamblerCharm.GAIN_MULTIPLIER;
+    }
+
+    public int applyEvilLandingPenalty(Tile tile) {
+        if (tile == null || tile != evilTile) {
+            return 0;
+        }
+        int penalty = GamblerCharm.calculateLandingPenalty(chips);
+        spendChips(penalty);
+        return penalty;
     }
 
     public void setChips(int chips) {
@@ -126,7 +156,13 @@ public final class RunState {
 
     public boolean removeTile(Tile tile) {
         if (tiles.contains(tile)) {
-            return tiles.remove(tile);
+            selectedTiles.remove(tile);
+            tile.setSelected(false);
+            boolean removed = tiles.remove(tile);
+            if (removed) {
+                tile.dispose();
+            }
+            return removed;
         }
         return false;
     }
@@ -261,14 +297,25 @@ public final class RunState {
         score = 0;
         tickets = 5;
         lastTile = null;
+        evilTile = null;
         clearSelectedTiles();
         activeTooltip = null;
-        boss = null;
         freeSpinRequested = false;
         pendingSettlementStake = 0;
         activeBets.clear();
 
+        // Bosses may hold temporary global state (for example payout changes or
+        // covered cards) when a run ends before ROUND_END is dispatched.
+        if (boss != null) {
+            boss.roundEndEffect();
+            boss = null;
+        }
+
         for (Card card : ownedCards) {
+            // Undo each card's lasting changes so a reused card doesn't carry them into the next run.
+            card.getTooltip().hide();
+            card.setCovered(false);
+            card.removedEffect();
             Roulette.getInstance().getCardPool().returnCard(card);
         }
         for (Charm charm : ownedCharms) {
@@ -365,7 +412,7 @@ public final class RunState {
     public WinBreakdown resolveActiveBetsDetailed() {
         if (lastTile == null) {
             activeBets.clear();
-            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, null);
+            return new WinBreakdown(0, 0, 0, 0, 0, 1f, 1f, 0, 0, null);
         }
 
         int totalStaked = 0;
@@ -373,10 +420,14 @@ public final class RunState {
         int rawPayout = 0;
 
         float globalMultiplier = 1f;
+        globalMultiplier *= getEvilGainMultiplier();
         float cardFlatBonus = 0f;
         int triggerCount = getCardEffectTriggerCount();
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
+                if (card.isCovered()) {
+                    continue;
+                }
                 globalMultiplier *= card.getPayoutMultiplier(lastTile, totalStaked, chips);
                 cardFlatBonus += card.getFlatBonus(lastTile, totalStaked, chips);
             }
@@ -393,8 +444,9 @@ public final class RunState {
         }
 
         float tileMultiplier = lastTile.getBetMultiplier();
+        float postMultiplierBonus = winningStake > 0 ? lastTile.getPostMultiplierBonus() : 0f;
 
-        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier);
+        int finalTotal = Math.round(rawPayout * tileMultiplier * globalMultiplier + postMultiplierBonus);
 
         float totalFlatBonus = tileFlatBonus + cardFlatBonus;
 
@@ -404,7 +456,7 @@ public final class RunState {
             : 1f;
 
         return new WinBreakdown(totalStaked, rawPayout, winningStake, payoutMultiplier, totalFlatBonus, tileMultiplier, globalMultiplier,
-            finalTotal, lastTile);
+            postMultiplierBonus, finalTotal, lastTile);
     }
 
     /**
@@ -452,32 +504,40 @@ public final class RunState {
      *
      * @param effectType The type of effect to trigger.
      */
-    public void triggerEffects(String effectType) {
-        int triggerCount = getCardEffectTriggerCount();
-
+    public void triggerEffects(EffectType effectType) {
+        // Bosses must establish round-start restrictions before cards receive
+        // their trigger, otherwise cards covered by the House still activate.
+        if (effectType == EffectType.ROUND_START) {
+            triggerBossEffects(effectType);
+        }
         triggerCardEffects(effectType);
-        triggerBossEffects(effectType);
+        if (effectType != EffectType.ROUND_START) {
+            triggerBossEffects(effectType);
+        }
     }
 
-    private void triggerCardEffects(String effectType) {
+    private void triggerCardEffects(EffectType effectType) {
         int triggerCount = getCardEffectTriggerCount();
 
         for (int trigger = 0; trigger < triggerCount; trigger++) {
             for (Card card : ownedCards) {
+                if (card.isCovered()) {
+                    continue;
+                }
                 switch (effectType) {
-                    case "roundStart":
+                    case ROUND_START:
                         card.roundStartEffect();
                         break;
-                    case "beforeSpin":
+                    case BEFORE_SPIN:
                         card.beforeSpinEffect();
                         break;
-                    case "afterSpin":
+                    case AFTER_SPIN:
                         card.afterSpinEffect();
                         break;
-                    case "roundEnd":
+                    case ROUND_END:
                         card.roundEndEffect();
                         break;
-                    case "charmConsumed":
+                    case CHARM_CONSUMED:
                         card.charmConsumedEffect();
                         break;
                     default:
@@ -487,29 +547,31 @@ public final class RunState {
         }
 
         for (Card card : ownedCards) {
-            card.afterCardEffects(effectType);
+            if (!card.isCovered()) {
+                card.afterCardEffects(effectType);
+            }
         }
     }
 
-    private void triggerBossEffects(String effectType) {
+    private void triggerBossEffects(EffectType effectType) {
         if (boss == null) {
             return;
         }
 
         switch (effectType) {
-            case "roundStart":
+            case ROUND_START:
                 boss.roundStartEffect();
                 break;
-            case "beforeSpin":
+            case BEFORE_SPIN:
                 boss.beforeSpinEffect();
                 break;
-            case "afterSpin":
+            case AFTER_SPIN:
                 boss.afterSpinEffect();
                 break;
-            case "roundEnd":
+            case ROUND_END:
                 boss.roundEndEffect();
                 break;
-            case "charmConsumed":
+            case CHARM_CONSUMED:
                 boss.charmConsumedEffect();
                 break;
             default:
@@ -521,6 +583,9 @@ public final class RunState {
         int additionalTriggers = 0;
         int triggerMultiplier = 1;
         for (Card card : ownedCards) {
+            if (card.isCovered()) {
+                continue;
+            }
             additionalTriggers += card.getAdditionalEffectTriggers();
             triggerMultiplier *= card.getEffectTriggerMultiplier();
         }

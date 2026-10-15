@@ -70,14 +70,50 @@ public final class SoundManager implements Disposable {
     }
 
     public void playSound(String key, float volumeScale) {
+        playSound(key, volumeScale, 1f);
+    }
+
+    public void playSound(String key, float volumeScale, float pitch) {
         if (muted) return;
 
+        Sound sound = getSound(key);
+        if (sound == null) return;
+        sound.play(sfxVolume * volumeScale, pitch, 0f);
+    }
+
+    /**
+     * Starts looping a sound whose volume and pitch can be changed while it plays.
+     *
+     * @return The id of the playing instance, or -1 if nothing was started.
+     */
+    public long loopSound(String key, float volumeScale, float pitch) {
+        Sound sound = getSound(key);
+        if (sound == null) return -1;
+        return sound.loop(muted ? 0f : sfxVolume * volumeScale, pitch, 0f);
+    }
+
+    /**
+     * Changes the volume and pitch of a sound instance started with {@link #loopSound}.
+     */
+    public void updateSound(String key, long id, float volumeScale, float pitch) {
+        Sound sound = sounds.get(key);
+        if (sound == null || id == -1) return;
+        sound.setVolume(id, muted ? 0f : sfxVolume * volumeScale);
+        sound.setPitch(id, pitch);
+    }
+
+    public void stopSound(String key, long id) {
+        Sound sound = sounds.get(key);
+        if (sound == null || id == -1) return;
+        sound.stop(id);
+    }
+
+    private Sound getSound(String key) {
         Sound sound = sounds.get(key);
         if (sound == null) {
             Gdx.app.error("SoundManager", "No sound loaded for key: " + key);
-            return;
         }
-        sound.play(sfxVolume * volumeScale);
+        return sound;
     }
 
     // ---- Music playback ----

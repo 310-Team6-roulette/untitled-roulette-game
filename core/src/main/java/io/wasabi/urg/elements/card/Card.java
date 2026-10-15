@@ -2,7 +2,6 @@ package io.wasabi.urg.elements.card;
 
 import java.util.EnumMap;
 
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -13,6 +12,7 @@ import io.wasabi.urg.elements.game.Tile;
 import io.wasabi.urg.managers.RendererManager;
 import io.wasabi.urg.managers.SoundManager;
 import io.wasabi.urg.managers.TextureManager;
+import io.wasabi.urg.state.EffectType;
 import io.wasabi.urg.ui.FloatingText;
 import io.wasabi.urg.ui.Tooltip;
 import io.wasabi.urg.util.tweens.Tween;
@@ -41,6 +41,7 @@ public abstract class Card extends GameObject {
     private float width;
     private float height;
     private boolean dragging = false;
+    private boolean covered = false;
     private float targetX;
     private float targetY;
     private boolean hasTarget = false;
@@ -79,7 +80,7 @@ public abstract class Card extends GameObject {
     public float getFlatBonus(Tile winningTile, int totalStaked, int chipBalance) { return 0f; }
     public int getAdditionalEffectTriggers() { return 0; }
     public int getEffectTriggerMultiplier() { return 1; }
-    public void afterCardEffects(String effectType) {}
+    public void afterCardEffects(EffectType effectType) {}
     public void removedEffect() {}
 
     @Override
@@ -110,6 +111,11 @@ public abstract class Card extends GameObject {
         float nWidth = width * mult;
         float nHeight = height * mult;
         RendererManager.getInstance().getSpriteBatch().draw(sprite, x - width/2 * (mult - 1), y - height/2 * (mult - 1), nWidth, nHeight);
+        if (covered) {
+            spriteBatch.setColor(0f, 0f, 0f, 0.85f);
+            spriteBatch.draw(sprite, x, y, width, height);
+            spriteBatch.setColor(1f, 1f, 1f, 1f);
+        }
     }
 
     public boolean contains(float worldX, float worldY) {
@@ -144,6 +150,13 @@ public abstract class Card extends GameObject {
     public int getSellPrice() { return sellPrice; }
     public String getDisplayName() { return getClass().getSimpleName(); }
     public boolean isDragging() { return dragging; }
+    public boolean isCovered() { return covered; }
+    public void setCovered(boolean covered) {
+        this.covered = covered;
+        if (covered) {
+            tooltip.hide();
+        }
+    }
     public Tooltip getTooltip() { return tooltip; }
 
     public void setDragging(boolean dragging) {

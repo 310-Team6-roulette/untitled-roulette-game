@@ -21,6 +21,7 @@ public final class CardPool {
         commonCards.add(new EvenCard());
         commonCards.add(new Jackpot());
         commonCards.add(new GoldenTicket());
+        commonCards.add(new OverweightSticker());
 
         uncommonCards.add(new AllIn());
         uncommonCards.add(new FourLeafClover());
@@ -54,6 +55,9 @@ public final class CardPool {
         if (card == null) {
             return;
         }
+
+        // Pool entries must always be reusable in their default state.
+        card.setCovered(false);
 
         List<Card> pool;
         switch (card.getRarity()) {

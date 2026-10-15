@@ -15,6 +15,7 @@ import io.wasabi.urg.elements.tiles.VoidTile;
 public class GoldenTicket extends Card {
     private static final int ENCHANTED_TILE_COUNT = 2;
     private final Map<Tile, TileType> enchantedTiles = new LinkedHashMap<>();
+    private final Map<Tile, GoldTile> goldTiles = new LinkedHashMap<>();
     private int activeRound = -1;
 
     public GoldenTicket() {
@@ -48,7 +49,8 @@ public class GoldenTicket extends Card {
             goldType.setColour(originalType.getColour());
             goldType.setNumber(originalType.getNumber());
             goldType.setBetMultiplier(originalType.getBetMultiplier());
-            tile.setType(goldType);
+            tile.setTemporaryType(goldType);
+            goldTiles.put(tile, goldType);
         }
     }
 
@@ -57,12 +59,21 @@ public class GoldenTicket extends Card {
         restoreTiles();
     }
 
+    @Override
+    public void removedEffect() {
+        restoreTiles();
+        activeRound = -1;
+    }
+
     private void restoreTiles() {
         for (Map.Entry<Tile, TileType> entry : enchantedTiles.entrySet()) {
-            if (entry.getKey().getType() instanceof GoldTile) {
-                entry.getKey().setType(entry.getValue());
+            GoldTile goldTile = goldTiles.get(entry.getKey());
+            if (entry.getKey().getType() == goldTile) {
+                goldTile.dispose();
+                entry.getKey().setTemporaryType(entry.getValue());
             }
         }
         enchantedTiles.clear();
+        goldTiles.clear();
     }
 }

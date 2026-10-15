@@ -1,6 +1,7 @@
 package io.wasabi.urg.elements.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
@@ -61,6 +62,8 @@ public class Tile extends GameObject {
     private Fixture fret;
 
     private boolean selected = false;
+    private boolean evil = false;
+    private int charmEffectCount = 0;
 
     // Used to track changes to this tile's colour or number — the two attributes
     // {@link io.wasabi.urg.elements.betting.BettingTable}'s cached layout keys bet
@@ -222,15 +225,47 @@ public class Tile extends GameObject {
         SPRITE_BATCH.begin();
         previousSpriteTransform.set(SPRITE_BATCH.getTransformMatrix());
         SPRITE_BATCH.setTransformMatrix(fontMatrix4);
+        SPRITE_BATCH.setColor(type.getNumberColor());
+        FONT.setColor(type.getNumberColor());
         if (!(type instanceof NumberlessTile)) {
             FONT.draw(SPRITE_BATCH, Integer.toString(type.getNumber()), 0, 0, 16, Align.center, true);
         }
+        FONT.setColor(Color.WHITE);
+        SPRITE_BATCH.setColor(Color.WHITE);
         SPRITE_BATCH.setTransformMatrix(previousSpriteTransform);
         SPRITE_BATCH.end();
 
         if (selected) {
             renderSelectionOutline();
         }
+        if (evil) {
+            renderEvilOutline();
+        }
+    }
+
+    private void renderEvilOutline() {
+        float r1 = radius;
+        float r2 = radius + height + numHeight;
+        float radians = degrees * MathUtils.degreesToRadians * size;
+        int segments = Math.max(1, (int) (3 * (float) Math.cbrt(r2)));
+        float radInc = radians / segments;
+
+        SHAPE_RENDERER.begin(ShapeRenderer.ShapeType.Line);
+        SHAPE_RENDERER.setColor(0.75f, 0.05f, 0.05f, 1f);
+        Gdx.gl.glLineWidth(5);
+        float rot = rotation;
+        float previousX = position.x + r2 * MathUtils.cos(rot);
+        float previousY = position.y + r2 * MathUtils.sin(rot);
+        for (int i = 1; i <= segments; i++) {
+            rot += radInc;
+            float x = position.x + r2 * MathUtils.cos(rot);
+            float y = position.y + r2 * MathUtils.sin(rot);
+            SHAPE_RENDERER.line(previousX, previousY, x, y);
+            previousX = x;
+            previousY = y;
+        }
+        SHAPE_RENDERER.end();
+        Gdx.gl.glLineWidth(1);
     }
 
     private void renderSelectionOutline() {
@@ -272,6 +307,7 @@ public class Tile extends GameObject {
 
     public void onLanded() {
         type.onLanded();
+        io.wasabi.urg.Roulette.getInstance().getRunState().applyEvilLandingPenalty(this);
     }
 
     public Tooltip getTooltip() {
@@ -311,6 +347,19 @@ public class Tile extends GameObject {
         return selected;
     }
 
+    public boolean isEvil() {
+        return evil;
+    }
+
+    public void setEvil(boolean evil) {
+        this.evil = evil;
+        if (evil) {
+            type.getTooltip().setTitle(String.format("[#B30D0DFF]EVIL %d", type.getNumber()));
+            type.getTooltip().setDescriptionVisible(true);
+            type.getTooltip().setDescription("Gains are increased by 25%. Landing here removes 50% of your current chips.");
+        }
+    }
+
     public void setSelected(boolean selected) {
         this.selected = selected;
     }
@@ -335,9 +384,32 @@ public class Tile extends GameObject {
         update();
     }
 
+    /**
+     * Gives the fret's kinematic body the velocity it has while riding the spinning wheel, so
+     * Box2D pushes the ball with it instead of the fret teleporting into the ball each frame.
+     *
+     * @param angularVelocity The wheel's angular velocity in radians per second.
+     */
+    public void setSpinVelocity(float angularVelocity) {
+        Vector2 fretPos = body.getPosition();
+        body.setAngularVelocity(angularVelocity);
+        body.setLinearVelocity(
+                -angularVelocity * (fretPos.y - position.y),
+                angularVelocity * (fretPos.x - position.x));
+    }
+
     public void setSize(float size) {
         this.size = size;
         update();
+    }
+
+    /** Records one charm affecting this tile for boss and difficulty mechanics. */
+    public void recordCharmEffect() {
+        charmEffectCount++;
+    }
+
+    public int getCharmEffectCount() {
+        return charmEffectCount;
     }
 
     public TileType getType() {
@@ -346,6 +418,12 @@ public class Tile extends GameObject {
 
     public void setType(TileType type) {
         this.type.dispose();
+        this.type = type;
+        layoutVersion++;
+        update();
+    }
+
+    public void setTemporaryType(TileType type) {
         this.type = type;
         layoutVersion++;
         update();
@@ -362,6 +440,8 @@ public class Tile extends GameObject {
     public void setFlatBonus(float flatBonus) { type.setFlatBonus(flatBonus); }
 
     public float getFlatBonus() { return type.getFlatBonus(); }
+
+    public float getPostMultiplierBonus() { return type.getPostMultiplierBonus(); }
 
     public TileType.TileColour getColor() {
         return type.getColour();

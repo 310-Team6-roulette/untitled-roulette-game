@@ -29,6 +29,28 @@ import io.wasabi.urg.state.RunState;
 import io.wasabi.urg.util.tweens.Tween;
 
 public class Wheel {
+    /** Captures mutable wheel properties so temporary boss effects can be undone exactly. */
+    public static final class State {
+        private final float rotation;
+        private final Tile[] tiles;
+        private final float[] sizes;
+        private final int[] numbers;
+        private final float[] betMultipliers;
+        private final float[] flatBonuses;
+        private final float[] postMultiplierBonuses;
+
+        private State(float rotation, Tile[] tiles, float[] sizes, int[] numbers, float[] betMultipliers,
+                float[] flatBonuses, float[] postMultiplierBonuses) {
+            this.rotation = rotation;
+            this.tiles = tiles;
+            this.sizes = sizes;
+            this.numbers = numbers;
+            this.betMultipliers = betMultipliers;
+            this.flatBonuses = flatBonuses;
+            this.postMultiplierBonuses = postMultiplierBonuses;
+        }
+    }
+
     private static final Roulette GAME = Roulette.getInstance();
     private static final RunState RUN_STATE = GAME.getRunState();
 
@@ -36,7 +58,7 @@ public class Wheel {
     private static final ShapeRenderer SHAPE_RENDERER = RENDERER_MANAGER.getShapeRenderer();
     private static final SpriteBatch SPRITE_BATCH = RENDERER_MANAGER.getSpriteBatch();
 
-    private static final int[] WHEEL_NUMBER_ORDER = new int[] {
+    public static final int[] WHEEL_NUMBER_ORDER = new int[] {
             0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22,
             18, 29, 7, 28, 12, 35, 3, 26};
 
@@ -118,6 +140,12 @@ public class Wheel {
 
     public void setRotation(float rot) {
         this.rotation = rot;
+        // Keep the physics body in sync so the next spin doesn't snap back to its old angle
+        body.setTransform(body.getPosition(), rot);
+    }
+
+    public float getRotation() {
+        return rotation;
     }
 
     public void rotateBy(float deltaDegrees) {
@@ -186,6 +214,7 @@ public class Wheel {
         for (Tile tile : tiles) {
             tile.setDegrees(ang);
             tile.setRotation(angc);
+            tile.setSpinVelocity(body.getAngularVelocity());
             angc += ang * MathUtils.degreesToRadians * tile.getSize();
         }
     }
@@ -210,7 +239,7 @@ public class Wheel {
 
         if (wheelVelocityTween != null) {
             body.setAngularVelocity(wheelVelocityTween.update(delta));
-            setRotation(body.getAngle());
+            rotation = body.getAngle();
         }
 
         if (tweenY != null && !tweenY.isComplete()) {
@@ -226,11 +255,12 @@ public class Wheel {
         );
         SPRITE_BATCH.end();
 
+        // Position tiles before drawing so they match this frame's rotation (the ball is placed against it too)
+        update();
+
         for (Tile tile : tiles) {
             tile.render();
         }
-
-        update();
 
         SHAPE_RENDERER.begin(ShapeType.Line);
         SHAPE_RENDERER.setColor(1f, 1f, 1f, 1f);
@@ -281,23 +311,110 @@ public class Wheel {
         wheelVelocityTween = new Tween(duration, initialSpeed, 0, Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
     }
 
+    /**
+     * Brings the wheel smoothly to a stop within the given time, if it would otherwise keep spinning longer.
+     *
+     * @param maxDuration The longest the wheel may take to stop, in seconds
+     */
+    public void brake(float maxDuration) {
+        if (!isSpinning() || wheelVelocityTween.getTimeRemaining() <= maxDuration) {
+            return;
+        }
+        wheelVelocityTween = new Tween(maxDuration, body.getAngularVelocity(), 0,
+            Tween.TweenStyle.QUAD, Tween.TweenDirection.OUT);
+    }
+
     public void dispose() {
         wheelBackground.dispose();
         world.destroyBody(body);
     }
 
     public Body getBody() { return body; }
+    public float getRadius() { return radius; }
+    public float getTileSize() { return tileSize; }
     public List<Tile> getTiles() { return tiles; }
     public boolean isSpinning() { return wheelVelocityTween != null && !wheelVelocityTween.isComplete(); }
 
-    public void resetWheelTweens() {
-        wheelVelocityTween = null;
-        tweenY = null;
+    /** Returns a deep snapshot of the mutable state of the current wheel tiles. */
+    public State captureState() {
+        int tileCount = tiles.size();
+        Tile[] savedTiles = new Tile[tileCount];
+        float[] sizes = new float[tileCount];
+        int[] numbers = new int[tileCount];
+        float[] betMultipliers = new float[tileCount];
+        float[] flatBonuses = new float[tileCount];
+        float[] postMultiplierBonuses = new float[tileCount];
+
+        for (int i = 0; i < tileCount; i++) {
+            Tile tile = tiles.get(i);
+            savedTiles[i] = tile;
+            sizes[i] = tile.getSize();
+            numbers[i] = tile.getNumber();
+            betMultipliers[i] = tile.getBetMultiplier();
+            flatBonuses[i] = tile.getFlatBonus();
+            postMultiplierBonuses[i] = tile.getPostMultiplierBonus();
+        }
+
+        return new State(rotation, savedTiles, sizes, numbers, betMultipliers, flatBonuses, postMultiplierBonuses);
+    }
+
+    /** Restores a previously captured wheel state without replacing tile types or colours. */
+    public void restoreState(State state) {
+        if (state == null || tiles.size() > state.tiles.length) {
+            throw new IllegalArgumentException("state must contain every current wheel tile");
+        }
+
+        setRotation(state.rotation);
+        for (Tile tile : tiles) {
+            int savedIndex = -1;
+            for (int i = 0; i < state.tiles.length; i++) {
+                if (state.tiles[i] == tile) {
+                    savedIndex = i;
+                    break;
+                }
+            }
+            if (savedIndex < 0) {
+                throw new IllegalArgumentException("state does not contain every current wheel tile");
+            }
+
+            tile.setSize(state.sizes[savedIndex]);
+            tile.setNumber(state.numbers[savedIndex]);
+            tile.setBetMultiplier(state.betMultipliers[savedIndex]);
+            tile.setFlatBonus(state.flatBonuses[savedIndex]);
+            tile.getType().setPostMultiplierBonus(state.postMultiplierBonuses[savedIndex]);
+        }
     }
 
     public void resetTileMultipliers() {
         for (Tile tile : tiles) {
             tile.setBetMultiplier(1f);
+        }
+    }
+
+    /** Restores roulette numbers without replacing tile types or changing colours. */
+    public void resetNumbersPreservingColours() {
+        int count = Math.min(tiles.size(), WHEEL_NUMBER_ORDER.length);
+        for (int i = 0; i < count; i++) {
+            tiles.get(i).setNumber(WHEEL_NUMBER_ORDER[i]);
+        }
+    }
+
+    /** Returns the current number order without exposing the wheel's tile state. */
+    public int[] getNumbers() {
+        int[] numbers = new int[tiles.size()];
+        for (int i = 0; i < tiles.size(); i++) {
+            numbers[i] = tiles.get(i).getNumber();
+        }
+        return numbers;
+    }
+
+    /** Restores a previously captured number order without changing tile types or colours. */
+    public void setNumbers(int[] numbers) {
+        if (numbers == null || numbers.length != tiles.size()) {
+            throw new IllegalArgumentException("numbers must match the wheel tile count");
+        }
+        for (int i = 0; i < tiles.size(); i++) {
+            tiles.get(i).setNumber(numbers[i]);
         }
     }
 
@@ -312,7 +429,17 @@ public class Wheel {
             return null;
         }
 
-        float pointAngle = normalizeAngle(MathUtils.atan2(local.y, local.x));
+        return getTileAtAngle(MathUtils.atan2(local.y, local.x));
+    }
+
+    /**
+     * Finds the tile whose wedge contains the given world angle, ignoring distance from the center.
+     *
+     * @param worldAngle The angle in radians around the wheel center.
+     * @return The tile at that angle, or null if none matched.
+     */
+    public Tile getTileAtAngle(float worldAngle) {
+        float pointAngle = normalizeAngle(worldAngle);
 
         float ang = getBaseTileAngle();
         float angc = rotation;
@@ -330,6 +457,28 @@ public class Wheel {
         }
 
         return null;
+    }
+
+    /**
+     * Gets the angle of a tile's center, measured from the wheel's current rotation.
+     * Adding {@link #getRotation()} gives the tile's center angle in world space.
+     *
+     * @param target The tile to find the center of.
+     * @return The center angle in radians relative to the wheel's rotation.
+     */
+    public float getTileCenterOffset(Tile target) {
+        float ang = getBaseTileAngle() * MathUtils.degreesToRadians;
+        float offset = 0f;
+
+        for (Tile tile : tiles) {
+            float sweep = ang * tile.getSize();
+            if (tile == target) {
+                return offset + sweep / 2f;
+            }
+            offset += sweep;
+        }
+
+        return 0f;
     }
 
     /**
