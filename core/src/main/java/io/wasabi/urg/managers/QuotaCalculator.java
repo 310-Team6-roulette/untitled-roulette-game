@@ -4,8 +4,19 @@ public final class QuotaCalculator {
 
     private static final int ROUNDS_PER_ACT = 5;
 
-    private static final int[] ACT_BASE_QUOTAS = {100, 300, 1000}; // Base quotas for first 3 acts (non-endless)
-    private static final float[] ROUND_MULTIPLIERS = {1.25f, 1.5f, 2.0f, 2.75f, 3.0f}; // Multipliers for each round
+    private static final int ACT_1_BASE_QUOTA = 100;
+    private static final int ACT_2_BASE_QUOTA = 300;
+    private static final int ACT_3_BASE_QUOTA = 1000;
+
+    private static final int[] ACT_BASE_QUOTAS = {
+        ACT_1_BASE_QUOTA, 
+        ACT_2_BASE_QUOTA, 
+        ACT_3_BASE_QUOTA
+    }; // Base quotas for first 3 acts (non-endless)
+
+    private static final float[] ROUND_MULTIPLIERS = {
+        1.25f, 1.5f, 2.0f, 2.75f, 3.0f
+    }; // Multipliers for each round
     
     private static final int ENDLESS_ACT_SCALE = 3; // Base quota multiplier for endless acts (acts beyond the first 3)
     
@@ -27,7 +38,7 @@ public final class QuotaCalculator {
             return ACT_BASE_QUOTAS[act - 1];
         }
 
-        long quota = ACT_BASE_QUOTAS[ACT_BASE_QUOTAS.length - 1];
+        long quota = ACT_3_BASE_QUOTA; // Start with the base quota for act 3
         int endlessAct = act - ACT_BASE_QUOTAS.length;
 
         // Long is used for quota to prevent overflow during multiplication. 

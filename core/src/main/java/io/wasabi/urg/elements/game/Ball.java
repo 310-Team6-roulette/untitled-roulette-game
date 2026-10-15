@@ -156,14 +156,17 @@ public class Ball extends GameObject {
 
             @Override
             public void endContact(Contact contact) {
+                // No action needed when contact between two fixtures ends.
             }
 
             @Override
             public void preSolve(Contact contact, Manifold oldManifold) {
+                // No changes to contact behaviour are needed before collision resolution.
             }
 
             @Override
             public void postSolve(Contact contact, ContactImpulse impulse) {
+                // No post-collision processing is needed; impacts are recorded in beginContact.
             }
         });
     }
